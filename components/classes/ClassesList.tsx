@@ -109,7 +109,7 @@ export function ClassesList({ classes }: ClassesListProps) {
                 <button
                   onClick={() => {
                     // TODO: Implement edit functionality
-                    toast.info('Edit functionality coming soon!')
+                    toast('Edit functionality coming soon!', { icon: 'ℹ️' })
                   }}
                   className="text-gray-400 hover:text-gray-600 p-1 rounded"
                   aria-label={`Edit ${classItem.name}`}

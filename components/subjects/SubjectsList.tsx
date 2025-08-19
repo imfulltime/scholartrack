@@ -79,7 +79,7 @@ export function SubjectsList({ subjects }: SubjectsListProps) {
                 <button
                   onClick={() => {
                     // TODO: Implement edit functionality
-                    toast.info('Edit functionality coming soon!')
+                    toast('Edit functionality coming soon!', { icon: 'ℹ️' })
                   }}
                   className="text-indigo-600 hover:text-indigo-900 p-2 rounded-md hover:bg-indigo-50"
                   aria-label={`Edit ${subject.name}`}

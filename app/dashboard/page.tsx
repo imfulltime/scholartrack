@@ -29,7 +29,13 @@ export default async function DashboardPage() {
       .eq('owner_id', user.id),
     supabase
       .from('assessments')
-      .select('id, title, date, status, classes(name)')
+      .select(`
+        id,
+        title,
+        date,
+        status,
+        classes!inner(name)
+      `)
       .eq('owner_id', user.id)
       .order('date', { ascending: true })
       .limit(5),
@@ -39,8 +45,8 @@ export default async function DashboardPage() {
         id,
         raw_score,
         updated_at,
-        students(full_name),
-        assessments(title, max_score)
+        students!inner(full_name),
+        assessments!inner(title, max_score)
       `)
       .eq('owner_id', user.id)
       .order('updated_at', { ascending: false })
@@ -62,8 +68,8 @@ export default async function DashboardPage() {
         <DashboardStats stats={stats} />
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-          <UpcomingAssessments assessments={assessments || []} />
-          <RecentActivity scores={recentScores || []} />
+          <UpcomingAssessments assessments={(assessments as any) || []} />
+          <RecentActivity scores={(recentScores as any) || []} />
         </div>
       </div>
     </div>

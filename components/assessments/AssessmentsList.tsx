@@ -166,7 +166,7 @@ export function AssessmentsList({ assessments, classId }: AssessmentsListProps) 
                   <button
                     onClick={() => {
                       // TODO: Implement edit functionality
-                      toast.info('Edit functionality coming soon!')
+                      toast('Edit functionality coming soon!', { icon: 'ℹ️' })
                     }}
                     className="text-gray-600 hover:text-gray-900 p-2 rounded-md hover:bg-gray-50"
                     title="Edit Assessment"

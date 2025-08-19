@@ -44,4 +44,4 @@ enable_confirmations = false
 
 # Use an external SMTP server
 [auth.email.smtp]
-enable = false
+enabled = false
