@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { ClassReports } from '@/components/reports/ClassReports'
 import { StudentReports } from '@/components/reports/StudentReports'
+import PDFExportButtons from '@/components/reports/PDFExportButtons'
 
 export default async function ReportsPage() {
   const supabase = createClient()
@@ -42,9 +43,15 @@ export default async function ReportsPage() {
           </div>
         </div>
         
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <ClassReports classes={classes || []} />
-          <StudentReports students={students || []} />
+        <div className="mt-8 space-y-8">
+          {/* PDF Export Section */}
+          <PDFExportButtons />
+          
+          {/* Existing Reports */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <ClassReports classes={classes || []} />
+            <StudentReports students={students || []} />
+          </div>
         </div>
       </div>
     </div>

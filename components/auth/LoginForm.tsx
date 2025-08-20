@@ -120,7 +120,7 @@ export function LoginForm() {
         </button>
       </div>
 
-      <div className="text-center">
+      <div className="text-center space-y-2">
         <button
           type="button"
           onClick={() => setIsSignUp(!isSignUp)}
@@ -128,6 +128,17 @@ export function LoginForm() {
         >
           {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
         </button>
+        
+        {!isSignUp && (
+          <div>
+            <a
+              href="/auth/reset-password"
+              className="text-indigo-600 hover:text-indigo-500 text-sm font-medium"
+            >
+              Forgot your password?
+            </a>
+          </div>
+        )}
       </div>
     </form>
   )

@@ -36,6 +36,7 @@ export function Navbar({ user }: NavbarProps) {
     { name: 'Students', href: '/students' },
     { name: 'Classes', href: '/classes' },
     { name: 'Reports', href: '/reports' },
+    { name: 'Analytics', href: '/analytics' },
     { name: 'Announcements', href: '/announcements' },
   ]
 
