@@ -37,17 +37,9 @@ jest.mock('next/navigation', () => ({
 
 // Mock react-hot-toast
 jest.mock('react-hot-toast', () => ({
-  toast: {
-    success: jest.fn(),
-    error: jest.fn(),
-    info: jest.fn(),
-  },
+  toast: jest.fn(),
   __esModule: true,
-  default: {
-    success: jest.fn(),
-    error: jest.fn(),
-    info: jest.fn(),
-  },
+  default: jest.fn(),
 }))
 
 // Suppress console warnings for tests
