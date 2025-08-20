@@ -61,22 +61,31 @@ export default function StaticAnalyticsDashboard({ classId }: StaticAnalyticsDas
         ...(classId && { classId }),
       })
 
+      console.log('Fetching analytics with params:', params.toString())
       const response = await fetch(`/api/analytics?${params}`)
       
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Failed to fetch analytics' }))
-        throw new Error(errorData.error || `HTTP ${response.status}`)
+        let errorData
+        try {
+          errorData = await response.json()
+        } catch {
+          errorData = { error: `HTTP ${response.status}: ${response.statusText}` }
+        }
+        
+        console.error('Analytics API error:', response.status, errorData)
+        throw new Error(errorData.error || `Server error: ${response.status}`)
       }
 
       const analyticsData = await response.json()
+      console.log('Analytics data received:', analyticsData)
       setData(analyticsData)
     } catch (error: any) {
       const errorMessage = error.message || 'Failed to load analytics data'
       setError(errorMessage)
-      console.error('Analytics error:', error)
+      console.error('Analytics fetch error:', error)
       
       // Show user-friendly error message
-      toast.error('Unable to load analytics. Please try again.')
+      toast.error(`Analytics error: ${errorMessage}`)
     } finally {
       setIsLoading(false)
     }

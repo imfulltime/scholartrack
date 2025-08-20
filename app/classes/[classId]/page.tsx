@@ -38,10 +38,9 @@ export default async function ClassPage({ params }: ClassPageProps) {
       notFound()
     }
 
-    // Ensure subjects data exists
+    // Log if subjects data is missing but don't fail
     if (!classData.subjects) {
-      console.error('Class missing subject data:', classData)
-      notFound()
+      console.warn('Class missing subject data, continuing without subject info:', classData.id)
     }
 
     // Get enrollments with student info

@@ -15,8 +15,11 @@ export async function GET(request: NextRequest) {
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
+      console.error('Analytics auth error:', authError)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    console.log('Analytics request for user:', user.id, 'classId:', classId, 'timeRange:', timeRange)
 
     // Calculate date range
     const now = new Date()
@@ -45,15 +48,17 @@ export async function GET(request: NextRequest) {
         .match(baseConditions)
         .gte('created_at', startDate.toISOString()),
 
-      // All scores for calculations
+      // All scores for calculations - simplified query
       supabase
         .from('scores')
         .select(`
-          *,
-          assessment:assessments!inner(*)
+          raw_score,
+          created_at,
+          assessment_id,
+          assessments!inner(max_score, created_at, class_id, owner_id)
         `)
         .eq('assessments.owner_id', user.id)
-        .gte('created_at', startDate.toISOString())
+        .gte('scores.created_at', startDate.toISOString())
     ])
 
     if (studentsResult.error || assessmentsResult.error || scoresResult.error) {
@@ -69,9 +74,9 @@ export async function GET(request: NextRequest) {
     const totalStudents = new Set(students.map(s => s.student_id)).size
     const totalAssessments = assessments.length
     
-    const validScores = scores.filter(s => s.raw_score !== null && s.assessment?.max_score)
+    const validScores = scores.filter(s => s.raw_score !== null && s.assessments?.[0]?.max_score)
     const averageGrade = validScores.length > 0 
-      ? validScores.reduce((sum, score) => sum + (score.raw_score / score.assessment.max_score * 100), 0) / validScores.length
+      ? validScores.reduce((sum, score) => sum + (score.raw_score / score.assessments[0].max_score * 100), 0) / validScores.length
       : 0
 
     const completionRate = totalAssessments > 0 
@@ -88,7 +93,7 @@ export async function GET(request: NextRequest) {
     ]
 
     validScores.forEach(score => {
-      const percentage = (score.raw_score / score.assessment.max_score) * 100
+      const percentage = (score.raw_score / score.assessments[0].max_score) * 100
       if (percentage >= 90) gradeDistribution[0].count++
       else if (percentage >= 80) gradeDistribution[1].count++
       else if (percentage >= 70) gradeDistribution[2].count++
@@ -112,7 +117,7 @@ export async function GET(request: NextRequest) {
       })
 
       const weekAverage = weekScores.length > 0
-        ? weekScores.reduce((sum, score) => sum + (score.raw_score / score.assessment.max_score * 100), 0) / weekScores.length
+        ? weekScores.reduce((sum, score) => sum + (score.raw_score / score.assessments[0].max_score * 100), 0) / weekScores.length
         : 0
 
       performanceTrends.push({
@@ -146,18 +151,18 @@ export async function GET(request: NextRequest) {
               .from('scores')
               .select(`
                 raw_score,
-                assessment:assessments!inner(max_score, class_id)
+                assessments!inner(max_score, class_id)
               `)
               .eq('assessments.class_id', cls.id)
-              .eq('owner_id', user.id)
+              .eq('assessments.owner_id', user.id)
 
             const validClassScores = (classScores || []).filter((s: any) => 
-              s.raw_score !== null && s.assessment?.max_score
+              s.raw_score !== null && s.assessments?.[0]?.max_score
             )
             
             const average = validClassScores.length > 0
               ? validClassScores.reduce((sum: number, score: any) => 
-                  sum + (score.raw_score / score.assessment.max_score * 100), 0
+                  sum + (score.raw_score / score.assessments[0].max_score * 100), 0
                 ) / validClassScores.length
               : 0
 
@@ -179,7 +184,7 @@ export async function GET(request: NextRequest) {
         full_name,
         scores(
           raw_score,
-          assessment:assessments!inner(max_score, created_at)
+          assessments!inner(max_score, created_at)
         )
       `)
       .eq('owner_id', user.id)
@@ -197,12 +202,12 @@ export async function GET(request: NextRequest) {
       }
 
       const average = studentScores.reduce((sum: number, score: any) => 
-        sum + (score.raw_score / score.assessment.max_score * 100), 0
+        sum + (score.raw_score / score.assessments[0].max_score * 100), 0
       ) / studentScores.length
 
       // Calculate improvement rate (compare first half vs second half of scores)
       const sortedScores = studentScores.sort((a: any, b: any) => 
-        new Date(a.assessment.created_at).getTime() - new Date(b.assessment.created_at).getTime()
+        new Date(a.assessments[0].created_at).getTime() - new Date(b.assessments[0].created_at).getTime()
       )
       
       let improvementRate = 0
@@ -211,11 +216,11 @@ export async function GET(request: NextRequest) {
         const secondHalf = sortedScores.slice(Math.floor(sortedScores.length / 2))
         
         const firstAvg = firstHalf.reduce((sum: number, score: any) => 
-          sum + (score.raw_score / score.assessment.max_score * 100), 0
+          sum + (score.raw_score / score.assessments[0].max_score * 100), 0
         ) / firstHalf.length
         
         const secondAvg = secondHalf.reduce((sum: number, score: any) => 
-          sum + (score.raw_score / score.assessment.max_score * 100), 0
+          sum + (score.raw_score / score.assessments[0].max_score * 100), 0
         ) / secondHalf.length
         
         improvementRate = secondAvg - firstAvg
