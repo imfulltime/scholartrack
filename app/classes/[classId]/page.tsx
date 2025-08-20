@@ -44,42 +44,87 @@ export default async function ClassPage({ params }: ClassPageProps) {
     }
 
     // Get enrollments with student info
-    const { data: enrollments } = await supabase
-      .from('enrollments')
-      .select(`
-        *,
-        students(id, full_name, year_level, external_id)
-      `)
-      .eq('class_id', params.classId)
-      .eq('owner_id', user.id)
+    let enrollments: any[] = []
+    
+    try {
+      const { data: enrollmentsData, error: enrollmentsError } = await supabase
+        .from('enrollments')
+        .select(`
+          *,
+          students(id, full_name, year_level, external_id)
+        `)
+        .eq('class_id', params.classId)
+        .eq('owner_id', user.id)
 
-    // Get available students for enrollment (same year level, not already enrolled)
-    const enrolledStudentIds = enrollments?.map(e => e.student_id) || []
-    let availableStudentsQuery = supabase
-      .from('students')
-      .select('*')
-      .eq('owner_id', user.id)
-      .eq('year_level', classData.year_level)
-
-    // Only add the NOT IN filter if there are enrolled students
-    if (enrolledStudentIds.length > 0) {
-      availableStudentsQuery = availableStudentsQuery.not('id', 'in', `(${enrolledStudentIds.join(',')})`)
+      if (enrollmentsError) {
+        console.error('Enrollments query error:', enrollmentsError)
+        // Try a simpler query if the join fails
+        const { data: simpleEnrollments } = await supabase
+          .from('enrollments')
+          .select('*')
+          .eq('class_id', params.classId)
+          .eq('owner_id', user.id)
+        
+        enrollments = simpleEnrollments || []
+      } else {
+        enrollments = enrollmentsData || []
+      }
+    } catch (error) {
+      console.error('Enrollments fetch error:', error)
+      enrollments = []
     }
 
-    const { data: availableStudents } = await availableStudentsQuery
+    // Get available students for enrollment (simplified query)
+    let availableStudents: any[] = []
+    
+    try {
+      const enrolledStudentIds = enrollments?.map(e => e.student_id).filter(id => id) || []
+      
+      // Get all students of the same year level first
+      const { data: allStudents, error: studentsError } = await supabase
+        .from('students')
+        .select('*')
+        .eq('owner_id', user.id)
+        .eq('year_level', classData.year_level)
+
+      if (studentsError) {
+        console.error('Students query error:', studentsError)
+      } else {
+        // Filter out enrolled students on the client side for safety
+        availableStudents = (allStudents || []).filter(student => 
+          !enrolledStudentIds.includes(student.id)
+        )
+      }
+    } catch (error) {
+      console.error('Available students query error:', error)
+      availableStudents = []
+    }
 
     // Get assessments for this class
-    const { data: assessments } = await supabase
-      .from('assessments')
-      .select('*')
-      .eq('class_id', params.classId)
-      .eq('owner_id', user.id)
-      .order('date', { ascending: false })
+    let assessments: any[] = []
+    
+    try {
+      const { data: assessmentsData, error: assessmentsError } = await supabase
+        .from('assessments')
+        .select('*')
+        .eq('class_id', params.classId)
+        .eq('owner_id', user.id)
+        .order('date', { ascending: false })
+
+      if (assessmentsError) {
+        console.error('Assessments query error:', assessmentsError)
+      } else {
+        assessments = assessmentsData || []
+      }
+    } catch (error) {
+      console.error('Assessments fetch error:', error)
+      assessments = []
+    }
 
     return (
       <PageWrapper
         title={`${classData.name} - ${classData.subjects?.name || 'Unknown Subject'}`}
-        subtitle={`Year ${classData.year_level} • ${enrollments?.length || 0} students enrolled • ${assessments?.length || 0} assessments`}
+        subtitle={`Year ${classData.year_level} • ${enrollments.length} students enrolled • ${assessments.length} assessments`}
         backButton={{
           label: 'Back to Classes',
           href: '/classes'
@@ -113,14 +158,14 @@ export default async function ClassPage({ params }: ClassPageProps) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
             <CreateAssessmentForm classId={params.classId} />
-            <AssessmentsList assessments={assessments || []} classId={params.classId} />
+            <AssessmentsList assessments={assessments} classId={params.classId} />
           </div>
           
           <div className="space-y-6">
             <EnrollmentManager
               classId={params.classId}
-              enrollments={enrollments || []}
-              availableStudents={availableStudents || []}
+              enrollments={enrollments}
+              availableStudents={availableStudents}
             />
             
             <BulkEnrollmentManager
