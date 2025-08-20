@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { StudentsList } from '@/components/students/StudentsList'
 import { CreateStudentForm } from '@/components/students/CreateStudentForm'
 import { ImportStudentsForm } from '@/components/students/ImportStudentsForm'
+import PageWrapper from '@/components/layout/PageWrapper'
+import { Users, Upload } from 'lucide-react'
 
 export default async function StudentsPage() {
   const supabase = createClient()
@@ -19,26 +21,30 @@ export default async function StudentsPage() {
     .order('full_name')
 
   return (
-    <div className="px-4 py-6 sm:px-0">
-      <div className="border-4 border-dashed border-gray-200 rounded-lg p-6">
-        <div className="sm:flex sm:items-center">
-          <div className="sm:flex-auto">
-            <h1 className="text-3xl font-bold text-gray-900">Students</h1>
-            <p className="mt-2 text-sm text-gray-700">
-              Manage your students and their information.
-            </p>
-          </div>
-        </div>
-        
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <PageWrapper
+      title="Students"
+      subtitle={`Manage your students and their information. Total: ${students?.length || 0} students`}
+      actions={[
+        {
+          label: 'View Classes',
+          href: '/classes',
+          variant: 'secondary',
+          icon: <Users className="h-4 w-4" />
+        },
+        {
+          label: 'View Reports',
+          href: '/reports',
+          variant: 'secondary'
+        }
+      ]}
+    >
+      <div className="space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <CreateStudentForm />
           <ImportStudentsForm />
         </div>
-        
-        <div className="mt-8">
-          <StudentsList students={students || []} />
-        </div>
+        <StudentsList students={students || []} />
       </div>
-    </div>
+    </PageWrapper>
   )
 }

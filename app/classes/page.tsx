@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { ClassesList } from '@/components/classes/ClassesList'
 import { CreateClassForm } from '@/components/classes/CreateClassForm'
+import PageWrapper from '@/components/layout/PageWrapper'
+import { BookOpen, Users } from 'lucide-react'
 
 export default async function ClassesPage() {
   const supabase = createClient()
@@ -29,25 +31,33 @@ export default async function ClassesPage() {
   ])
 
   return (
-    <div className="px-4 py-6 sm:px-0">
-      <div className="border-4 border-dashed border-gray-200 rounded-lg p-6">
-        <div className="sm:flex sm:items-center">
-          <div className="sm:flex-auto">
-            <h1 className="text-3xl font-bold text-gray-900">Classes</h1>
-            <p className="mt-2 text-sm text-gray-700">
-              Manage your classes and their enrollments.
-            </p>
-          </div>
-        </div>
-        
-        <div className="mt-8">
-          <CreateClassForm subjects={subjects || []} />
-        </div>
-        
-        <div className="mt-8">
-          <ClassesList classes={classes || []} />
-        </div>
+    <PageWrapper
+      title="Classes"
+      subtitle={`Manage your classes and their enrollments. Total: ${classes?.length || 0} classes`}
+      actions={[
+        {
+          label: 'Manage Subjects',
+          href: '/subjects',
+          variant: 'secondary',
+          icon: <BookOpen className="h-4 w-4" />
+        },
+        {
+          label: 'View Students',
+          href: '/students',
+          variant: 'secondary',
+          icon: <Users className="h-4 w-4" />
+        },
+        {
+          label: 'View Reports',
+          href: '/reports',
+          variant: 'secondary'
+        }
+      ]}
+    >
+      <div className="space-y-8">
+        <CreateClassForm subjects={subjects || []} />
+        <ClassesList classes={classes || []} />
       </div>
-    </div>
+    </PageWrapper>
   )
 }

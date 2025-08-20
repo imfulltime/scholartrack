@@ -4,6 +4,9 @@ import { ClassHeader } from '@/components/classes/ClassHeader'
 import { EnrollmentManager } from '@/components/classes/EnrollmentManager'
 import { AssessmentsList } from '@/components/assessments/AssessmentsList'
 import { CreateAssessmentForm } from '@/components/assessments/CreateAssessmentForm'
+import BulkEnrollmentManager from '@/components/enrollments/BulkEnrollmentManager'
+import PageWrapper from '@/components/layout/PageWrapper'
+import { Users, ClipboardList, BarChart3 } from 'lucide-react'
 
 interface ClassPageProps {
   params: { classId: string }
@@ -61,25 +64,58 @@ export default async function ClassPage({ params }: ClassPageProps) {
     .order('date', { ascending: false })
 
   return (
-    <div className="px-4 py-6 sm:px-0">
-      <ClassHeader classData={classData} enrollmentCount={enrollments?.length || 0} />
-      
-      <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          <div className="mb-8">
-            <CreateAssessmentForm classId={params.classId} />
-          </div>
+    <PageWrapper
+      title={`${classData.name} - ${classData.subjects.name}`}
+      subtitle={`Year ${classData.year_level} • ${enrollments?.length || 0} students enrolled • ${assessments?.length || 0} assessments`}
+      backButton={{
+        label: 'Back to Classes',
+        href: '/classes'
+      }}
+      breadcrumbs={[
+        { label: 'Dashboard', href: '/dashboard' },
+        { label: 'Classes', href: '/classes' },
+        { label: classData.name, href: `/classes/${params.classId}`, current: true }
+      ]}
+      actions={[
+        {
+          label: 'View Students',
+          href: '/students',
+          variant: 'secondary',
+          icon: <Users className="h-4 w-4" />
+        },
+        {
+          label: 'Class Analytics',
+          href: `/analytics?classId=${params.classId}`,
+          variant: 'secondary',
+          icon: <BarChart3 className="h-4 w-4" />
+        },
+        {
+          label: 'View Reports',
+          href: '/reports',
+          variant: 'primary',
+          icon: <ClipboardList className="h-4 w-4" />
+        }
+      ]}
+    >
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          <CreateAssessmentForm classId={params.classId} />
           <AssessmentsList assessments={assessments || []} classId={params.classId} />
         </div>
         
-        <div>
+        <div className="space-y-6">
           <EnrollmentManager
             classId={params.classId}
             enrollments={enrollments || []}
             availableStudents={availableStudents || []}
           />
+          
+          <BulkEnrollmentManager
+            classId={params.classId}
+            onUpdate={() => window.location.reload()}
+          />
         </div>
       </div>
-    </div>
+    </PageWrapper>
   )
 }

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 import { toast } from 'react-hot-toast'
 
 interface AnalyticsData {
@@ -45,15 +44,23 @@ interface AdvancedAnalyticsDashboardProps {
 export default function AdvancedAnalyticsDashboard({ classId }: AdvancedAnalyticsDashboardProps) {
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [timeRange, setTimeRange] = useState('30d')
   const [selectedMetric, setSelectedMetric] = useState('performance')
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     fetchAnalyticsData()
   }, [classId, timeRange])
 
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const fetchAnalyticsData = async () => {
     setIsLoading(true)
+    setError(null)
     try {
       const params = new URLSearchParams({
         timeRange,
@@ -61,16 +68,30 @@ export default function AdvancedAnalyticsDashboard({ classId }: AdvancedAnalytic
       })
 
       const response = await fetch(`/api/analytics?${params}`)
-      if (!response.ok) throw new Error('Failed to fetch analytics')
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        throw new Error(errorData.error || 'Failed to fetch analytics')
+      }
 
       const analyticsData = await response.json()
       setData(analyticsData)
-    } catch (error) {
-      toast.error('Failed to load analytics data')
+    } catch (error: any) {
+      const errorMessage = error.message || 'Failed to load analytics data'
+      setError(errorMessage)
+      toast.error(errorMessage)
       console.error('Analytics error:', error)
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // Don't render charts on server-side
+  if (!mounted) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
   }
 
   if (isLoading) {
@@ -81,10 +102,33 @@ export default function AdvancedAnalyticsDashboard({ classId }: AdvancedAnalytic
     )
   }
 
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <h3 className="text-lg font-medium text-red-800 mb-2">Analytics Error</h3>
+          <p className="text-red-600 mb-4">{error}</p>
+          <button
+            onClick={fetchAnalyticsData}
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   if (!data) {
     return (
       <div className="text-center py-8">
         <p className="text-gray-500">No analytics data available</p>
+        <button
+          onClick={fetchAnalyticsData}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        >
+          Load Analytics
+        </button>
       </div>
     )
   }
@@ -180,58 +224,53 @@ export default function AdvancedAnalyticsDashboard({ classId }: AdvancedAnalytic
         </div>
       </div>
 
-      {/* Charts Row */}
+              {/* Charts Row - For now showing data in tables until charts can be properly loaded */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Performance Trends */}
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Performance Trends</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={data.performanceTrends}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="average" 
-                stroke="#3B82F6" 
-                strokeWidth={2}
-                name="Average Grade (%)"
-              />
-              <Line 
-                type="monotone" 
-                dataKey="assessmentCount" 
-                stroke="#10B981" 
-                strokeWidth={2}
-                name="Assessments"
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Average</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assessments</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {data.performanceTrends.slice(-5).map((trend, index) => (
+                  <tr key={index}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{trend.date}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{trend.average.toFixed(1)}%</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{trend.assessmentCount}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Grade Distribution */}
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Grade Distribution</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={data.gradeDistribution}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ grade, percentage }) => `${grade}: ${percentage.toFixed(1)}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="count"
-              >
-                {data.gradeDistribution.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+          <div className="space-y-3">
+            {data.gradeDistribution.map((grade, index) => (
+              <div key={grade.grade} className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div 
+                    className="w-4 h-4 rounded mr-3" 
+                    style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                  ></div>
+                  <span className="text-sm font-medium text-gray-900">Grade {grade.grade}</span>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm font-medium text-gray-900">{grade.count} students</div>
+                  <div className="text-xs text-gray-500">{grade.percentage.toFixed(1)}%</div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -239,17 +278,26 @@ export default function AdvancedAnalyticsDashboard({ classId }: AdvancedAnalytic
       {data.classComparison.length > 1 && (
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Class Comparison</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={data.classComparison}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="className" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="average" fill="#3B82F6" name="Average Grade (%)" />
-              <Bar dataKey="studentCount" fill="#10B981" name="Student Count" />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Average</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Students</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {data.classComparison.map((cls, index) => (
+                  <tr key={index}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{cls.className}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{cls.average.toFixed(1)}%</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{cls.studentCount}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
