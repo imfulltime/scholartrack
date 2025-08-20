@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
           *,
           assessment:assessments!inner(*)
         `)
-        .match({ 'assessments.owner_id': user.id })
+        .eq('assessments.owner_id', user.id)
         .gte('created_at', startDate.toISOString())
     ])
 

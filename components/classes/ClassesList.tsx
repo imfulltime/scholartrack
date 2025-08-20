@@ -97,7 +97,7 @@ export function ClassesList({ classes, subjects = [] }: ClassesListProps) {
             <div className="mt-4">
               <div className="flex items-center text-sm text-gray-500">
                 <Users className="flex-shrink-0 mr-1.5 h-4 w-4" />
-                {classItem.enrollments?.length || 0} students
+                {(classItem.enrollments?.[0]?.count ?? classItem.enrollments?.length ?? 0)} students
               </div>
             </div>
           </div>
