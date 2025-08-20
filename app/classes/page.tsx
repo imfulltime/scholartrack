@@ -22,7 +22,7 @@ export default async function ClassesPage() {
     const [classesResult, subjectsResult] = await Promise.all([
       supabase
         .from('classes')
-        .select('*, subjects(name, code)')
+        .select('*')
         .eq('owner_id', user.id)
         .order('name'),
       supabase
@@ -44,13 +44,17 @@ export default async function ClassesPage() {
         .eq('owner_id', user.id)
         .in('class_id', classIds)
 
-      // Add enrollment counts to classes
-      classes = classes.map(classItem => ({
-        ...classItem,
-        enrollments: [{
-          count: enrollmentCounts?.filter(e => e.class_id === classItem.id).length || 0
-        }]
-      }))
+      // Add enrollment counts and subject names to classes
+      classes = classes.map(classItem => {
+        const subject = subjects.find(s => s.id === classItem.subject_id)
+        return {
+          ...classItem,
+          subjects: subject ? { name: subject.name, code: subject.code } : null,
+          enrollments: [{
+            count: enrollmentCounts?.filter(e => e.class_id === classItem.id).length || 0
+          }]
+        }
+      })
     }
   } catch (error) {
     console.error('Error fetching classes data:', error)
