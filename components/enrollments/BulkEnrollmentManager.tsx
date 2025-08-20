@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { toast } from 'react-hot-toast'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -33,10 +34,10 @@ type TransferFormData = z.infer<typeof transferSchema>
 
 interface BulkEnrollmentManagerProps {
   classId: string
-  onUpdate: () => void
 }
 
-export default function BulkEnrollmentManager({ classId, onUpdate }: BulkEnrollmentManagerProps) {
+export default function BulkEnrollmentManager({ classId }: BulkEnrollmentManagerProps) {
+  const router = useRouter()
   const [students, setStudents] = useState<Student[]>([])
   const [availableClasses, setAvailableClasses] = useState<Class[]>([])
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set())
@@ -134,7 +135,7 @@ export default function BulkEnrollmentManager({ classId, onUpdate }: BulkEnrollm
       toast.success(`Successfully enrolled ${result.enrolled} students`)
       setSelectedStudents(new Set())
       fetchStudents()
-      onUpdate()
+      router.refresh()
     } catch (error) {
       toast.error('Failed to enroll students')
     } finally {
@@ -165,7 +166,7 @@ export default function BulkEnrollmentManager({ classId, onUpdate }: BulkEnrollm
       toast.success(`Successfully unenrolled ${result.unenrolled} students`)
       setSelectedStudents(new Set())
       fetchStudents()
-      onUpdate()
+      router.refresh()
     } catch (error) {
       toast.error('Failed to unenroll students')
     } finally {
@@ -199,7 +200,7 @@ export default function BulkEnrollmentManager({ classId, onUpdate }: BulkEnrollm
       toast.success(`Successfully ${data.transferType === 'move' ? 'moved' : 'copied'} ${result.transferred} students`)
       setSelectedStudents(new Set())
       fetchStudents()
-      onUpdate()
+      router.refresh()
       reset()
     } catch (error) {
       toast.error('Failed to transfer students')

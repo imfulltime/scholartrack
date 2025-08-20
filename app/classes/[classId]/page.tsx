@@ -168,14 +168,7 @@ export default async function ClassPage({ params }: ClassPageProps) {
               availableStudents={availableStudents}
             />
             
-            <BulkEnrollmentManager
-              classId={params.classId}
-              onUpdate={() => {
-                if (typeof window !== 'undefined') {
-                  window.location.reload()
-                }
-              }}
-            />
+            <BulkEnrollmentManager classId={params.classId} />
           </div>
         </div>
       </PageWrapper>
