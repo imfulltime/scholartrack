@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Edit2, Trash2, BookOpen } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { Database } from '@/types/database'
+import { EditSubjectForm } from './EditSubjectForm'
 
 type Subject = Database['public']['Tables']['subjects']['Row']
 
@@ -14,6 +15,7 @@ interface SubjectsListProps {
 
 export function SubjectsList({ subjects }: SubjectsListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [editingSubject, setEditingSubject] = useState<Subject | null>(null)
   const router = useRouter()
 
   const handleDelete = async (id: string) => {
@@ -77,10 +79,7 @@ export function SubjectsList({ subjects }: SubjectsListProps) {
               </div>
               <div className="flex items-center space-x-2">
                 <button
-                  onClick={() => {
-                    // TODO: Implement edit functionality
-                    toast('Edit functionality coming soon!', { icon: 'ℹ️' })
-                  }}
+                  onClick={() => setEditingSubject(subject)}
                   className="text-indigo-600 hover:text-indigo-900 p-2 rounded-md hover:bg-indigo-50"
                   aria-label={`Edit ${subject.name}`}
                 >
@@ -99,6 +98,17 @@ export function SubjectsList({ subjects }: SubjectsListProps) {
           </li>
         ))}
       </ul>
+      
+      {editingSubject && (
+        <EditSubjectForm
+          subject={editingSubject}
+          onClose={() => setEditingSubject(null)}
+          onSuccess={() => {
+            setEditingSubject(null)
+            router.refresh()
+          }}
+        />
+      )}
     </div>
   )
 }

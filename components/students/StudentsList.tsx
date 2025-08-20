@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Edit2, Trash2, Users, Search } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { Database } from '@/types/database'
+import { EditStudentForm } from './EditStudentForm'
 
 type Student = Database['public']['Tables']['students']['Row']
 
@@ -14,6 +15,7 @@ interface StudentsListProps {
 
 export function StudentsList({ students }: StudentsListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const router = useRouter()
 
@@ -104,16 +106,13 @@ export function StudentsList({ students }: StudentsListProps) {
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => {
-                      // TODO: Implement edit functionality
-                      toast('Edit functionality coming soon!', { icon: 'ℹ️' })
-                    }}
-                    className="text-indigo-600 hover:text-indigo-900 p-2 rounded-md hover:bg-indigo-50"
-                    aria-label={`Edit ${student.full_name}`}
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </button>
+                                      <button
+                      onClick={() => setEditingStudent(student)}
+                      className="text-indigo-600 hover:text-indigo-900 p-2 rounded-md hover:bg-indigo-50"
+                      aria-label={`Edit ${student.full_name}`}
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </button>
                   <button
                     onClick={() => handleDelete(student.id, student.full_name)}
                     disabled={deletingId === student.id}
@@ -138,6 +137,16 @@ export function StudentsList({ students }: StudentsListProps) {
           </div>
         )}
       </div>
+      {editingStudent && (
+        <EditStudentForm
+          student={editingStudent}
+          onClose={() => setEditingStudent(null)}
+          onSuccess={() => {
+            setEditingStudent(null)
+            router.refresh()
+          }}
+        />
+      )}
     </div>
   )
 }

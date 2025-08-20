@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Edit2, Trash2, Users, BookOpen, Eye } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { EditClassForm } from './EditClassForm'
 
 interface Class {
   id: string
@@ -19,10 +20,16 @@ interface Class {
 
 interface ClassesListProps {
   classes: Class[]
+  subjects?: Array<{
+    id: string
+    name: string
+    code: string
+  }>
 }
 
-export function ClassesList({ classes }: ClassesListProps) {
+export function ClassesList({ classes, subjects = [] }: ClassesListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [editingClass, setEditingClass] = useState<Class | null>(null)
   const router = useRouter()
 
   const handleDelete = async (id: string, name: string) => {
@@ -107,10 +114,7 @@ export function ClassesList({ classes }: ClassesListProps) {
               
               <div className="flex items-center space-x-2">
                 <button
-                  onClick={() => {
-                    // TODO: Implement edit functionality
-                    toast('Edit functionality coming soon!', { icon: 'ℹ️' })
-                  }}
+                  onClick={() => setEditingClass(classItem)}
                   className="text-gray-400 hover:text-gray-600 p-1 rounded"
                   aria-label={`Edit ${classItem.name}`}
                 >
@@ -129,6 +133,24 @@ export function ClassesList({ classes }: ClassesListProps) {
           </div>
         </div>
       ))}
+      
+      {editingClass && (
+        <EditClassForm
+          classData={{
+            id: editingClass.id,
+            name: editingClass.name,
+            subject_id: editingClass.subjects?.name ? 
+              subjects.find(s => s.name === editingClass.subjects?.name)?.id || '' : '',
+            year_level: editingClass.year_level
+          }}
+          subjects={subjects}
+          onClose={() => setEditingClass(null)}
+          onSuccess={() => {
+            setEditingClass(null)
+            router.refresh()
+          }}
+        />
+      )}
     </div>
   )
 }
