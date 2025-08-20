@@ -5,13 +5,8 @@ interface Score {
   id: string
   raw_score: number | null
   updated_at: string
-  students: {
-    full_name: string
-  } | null
-  assessments: {
-    title: string
-    max_score: number
-  } | null
+  student_id: string
+  assessment_id: string
 }
 
 interface RecentActivityProps {
@@ -20,14 +15,6 @@ interface RecentActivityProps {
 
 export function RecentActivity({ scores }: RecentActivityProps) {
   const recentScores = scores.slice(0, 5)
-
-  const getScoreColor = (score: number, maxScore: number) => {
-    const percentage = (score / maxScore) * 100
-    if (percentage >= 90) return 'text-green-600 bg-green-100'
-    if (percentage >= 80) return 'text-blue-600 bg-blue-100'
-    if (percentage >= 70) return 'text-yellow-600 bg-yellow-100'
-    return 'text-red-600 bg-red-100'
-  }
 
   return (
     <div className="bg-white overflow-hidden shadow rounded-lg">
@@ -53,21 +40,16 @@ export function RecentActivity({ scores }: RecentActivityProps) {
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900 truncate">
-                          {score.students?.full_name}
+                          Student: {score.student_id}
                         </p>
                         <p className="text-sm text-gray-500 truncate">
-                          {score.assessments?.title}
+                          Assessment: {score.assessment_id}
                         </p>
                       </div>
                       <div className="flex items-center space-x-2">
-                        {score.raw_score !== null && score.assessments && (
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getScoreColor(
-                              score.raw_score,
-                              score.assessments.max_score
-                            )}`}
-                          >
-                            {score.raw_score}/{score.assessments.max_score}
+                        {score.raw_score !== null && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            Score: {score.raw_score}
                           </span>
                         )}
                         <span className="text-xs text-gray-500">

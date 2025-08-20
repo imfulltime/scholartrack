@@ -12,14 +12,12 @@ export default async function ReportsPage() {
     return null
   }
 
-  // Get classes with basic statistics
+  // Get classes with basic statistics - simplified to avoid complex aggregations
   const { data: classes } = await supabase
     .from('classes')
     .select(`
       *,
-      subjects(name, code),
-      enrollments(count),
-      assessments(count)
+      subjects(name, code)
     `)
     .eq('owner_id', user.id)
     .order('name')

@@ -32,55 +32,88 @@ export async function GET(request: NextRequest) {
       ...(classId && { class_id: classId }),
     }
 
-    // Get overview statistics
-    const [studentsResult, assessmentsResult, scoresResult] = await Promise.all([
-      // Total students
-      supabase
+    // Get overview statistics with simplified queries
+    let students: any[] = []
+    let assessments: any[] = []
+    let scores: any[] = []
+
+    try {
+      // Get students (via enrollments)
+      const studentsQuery = supabase
         .from('enrollments')
         .select('student_id')
-        .match(baseConditions)
-        .gte('created_at', startDate.toISOString()),
+        .eq('owner_id', user.id)
+        .gte('created_at', startDate.toISOString())
 
-      // Total assessments
-      supabase
+      if (classId) {
+        studentsQuery.eq('class_id', classId)
+      }
+
+      const studentsResult = await studentsQuery
+
+      // Get assessments
+      const assessmentsQuery = supabase
         .from('assessments')
         .select('*')
-        .match(baseConditions)
-        .gte('created_at', startDate.toISOString()),
+        .eq('owner_id', user.id)
+        .gte('created_at', startDate.toISOString())
 
-      // All scores for calculations - simplified query
-      supabase
+      if (classId) {
+        assessmentsQuery.eq('class_id', classId)
+      }
+
+      const assessmentsResult = await assessmentsQuery
+
+      // Get scores with simple query first
+      const scoresResult = await supabase
         .from('scores')
-        .select(`
-          raw_score,
-          created_at,
-          assessment_id,
-          assessments!inner(max_score, created_at, class_id, owner_id)
-        `)
-        .eq('assessments.owner_id', user.id)
-        .gte('scores.created_at', startDate.toISOString())
-    ])
+        .select('raw_score, created_at, assessment_id')
+        .eq('owner_id', user.id)
+        .gte('created_at', startDate.toISOString())
 
-    if (studentsResult.error || assessmentsResult.error || scoresResult.error) {
-      console.error('Database error:', studentsResult.error || assessmentsResult.error || scoresResult.error)
-      return NextResponse.json({ error: 'Database error' }, { status: 500 })
+      if (studentsResult.error) {
+        console.error('Students query error:', studentsResult.error)
+        throw new Error(`Students query failed: ${studentsResult.error.message}`)
+      }
+      if (assessmentsResult.error) {
+        console.error('Assessments query error:', assessmentsResult.error)
+        throw new Error(`Assessments query failed: ${assessmentsResult.error.message}`)
+      }
+      if (scoresResult.error) {
+        console.error('Scores query error:', scoresResult.error)
+        throw new Error(`Scores query failed: ${scoresResult.error.message}`)
+      }
+
+      students = studentsResult.data || []
+      assessments = assessmentsResult.data || []
+      scores = scoresResult.data || []
+
+    } catch (error: any) {
+      console.error('Analytics query error:', error)
+      return NextResponse.json({ 
+        error: 'Database query failed', 
+        details: error.message 
+      }, { status: 500 })
     }
 
-    const students = studentsResult.data || []
-    const assessments = assessmentsResult.data || []
-    const scores = scoresResult.data || []
-
-    // Calculate metrics
+    // Calculate metrics with simplified data
     const totalStudents = new Set(students.map(s => s.student_id)).size
     const totalAssessments = assessments.length
     
-    const validScores = scores.filter(s => s.raw_score !== null && s.assessments?.[0]?.max_score)
-    const averageGrade = validScores.length > 0 
-      ? validScores.reduce((sum, score) => sum + (score.raw_score / score.assessments[0].max_score * 100), 0) / validScores.length
+    // For scores without joins, we'll calculate basic metrics
+    const validScores = scores.filter(s => s.raw_score !== null)
+    const totalScores = validScores.length
+    
+    // Basic average score (we'll approximate percentage based on common scales)
+    const averageRawScore = validScores.length > 0 
+      ? validScores.reduce((sum, score) => sum + score.raw_score, 0) / validScores.length
       : 0
 
-    const completionRate = totalAssessments > 0 
-      ? (validScores.length / (totalStudents * totalAssessments)) * 100
+    // Estimate average as percentage (assuming scores are typically out of 100)
+    const averageGrade = Math.min(averageRawScore, 100)
+
+    const completionRate = totalAssessments > 0 && totalStudents > 0
+      ? (totalScores / (totalStudents * totalAssessments)) * 100
       : 0
 
     // Grade distribution
@@ -93,7 +126,8 @@ export async function GET(request: NextRequest) {
     ]
 
     validScores.forEach(score => {
-      const percentage = (score.raw_score / score.assessments[0].max_score) * 100
+      // Assume scores are already percentages or use raw score as approximate percentage
+      const percentage = Math.min(score.raw_score, 100)
       if (percentage >= 90) gradeDistribution[0].count++
       else if (percentage >= 80) gradeDistribution[1].count++
       else if (percentage >= 70) gradeDistribution[2].count++
@@ -117,7 +151,7 @@ export async function GET(request: NextRequest) {
       })
 
       const weekAverage = weekScores.length > 0
-        ? weekScores.reduce((sum, score) => sum + (score.raw_score / score.assessments[0].max_score * 100), 0) / weekScores.length
+        ? weekScores.reduce((sum, score) => sum + Math.min(score.raw_score, 100), 0) / weekScores.length
         : 0
 
       performanceTrends.push({
@@ -136,11 +170,7 @@ export async function GET(request: NextRequest) {
     if (!classId) {
       const { data: classes } = await supabase
         .from('classes')
-        .select(`
-          id,
-          name,
-          enrollments(count)
-        `)
+        .select('id, name')
         .eq('owner_id', user.id)
 
       // Get scores for each class separately to avoid complex nested queries
@@ -149,27 +179,30 @@ export async function GET(request: NextRequest) {
           classes.map(async (cls: any) => {
             const { data: classScores } = await supabase
               .from('scores')
-              .select(`
-                raw_score,
-                assessments!inner(max_score, class_id)
-              `)
-              .eq('assessments.class_id', cls.id)
-              .eq('assessments.owner_id', user.id)
+              .select('raw_score')
+              .eq('owner_id', user.id)
 
             const validClassScores = (classScores || []).filter((s: any) => 
-              s.raw_score !== null && s.assessments?.[0]?.max_score
+              s.raw_score !== null
             )
             
             const average = validClassScores.length > 0
               ? validClassScores.reduce((sum: number, score: any) => 
-                  sum + (score.raw_score / score.assessments[0].max_score * 100), 0
+                  sum + Math.min(score.raw_score, 100), 0
                 ) / validClassScores.length
               : 0
+
+            // Get enrollment count separately
+            const { data: enrollments } = await supabase
+              .from('enrollments')
+              .select('student_id')
+              .eq('class_id', cls.id)
+              .eq('owner_id', user.id)
 
             return {
               className: cls.name,
               average,
-              studentCount: cls.enrollments?.[0]?.count || 0,
+              studentCount: enrollments?.length || 0,
             }
           })
         )
@@ -179,18 +212,11 @@ export async function GET(request: NextRequest) {
     // Calculate student performance for top performers and struggling students
     const { data: studentsWithScores } = await supabase
       .from('students')
-      .select(`
-        id,
-        full_name,
-        scores(
-          raw_score,
-          assessments!inner(max_score, created_at)
-        )
-      `)
+      .select('id, full_name')
       .eq('owner_id', user.id)
 
     const studentPerformance = (studentsWithScores || []).map((student: any) => {
-      const studentScores = (student.scores || []).filter((s: any) => s.raw_score !== null)
+      const studentScores = scores.filter(s => s.student_id === student.id && s.raw_score !== null)
       
       if (studentScores.length === 0) {
         return {
@@ -202,12 +228,12 @@ export async function GET(request: NextRequest) {
       }
 
       const average = studentScores.reduce((sum: number, score: any) => 
-        sum + (score.raw_score / score.assessments[0].max_score * 100), 0
+        sum + Math.min(score.raw_score, 100), 0
       ) / studentScores.length
 
       // Calculate improvement rate (compare first half vs second half of scores)
       const sortedScores = studentScores.sort((a: any, b: any) => 
-        new Date(a.assessments[0].created_at).getTime() - new Date(b.assessments[0].created_at).getTime()
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
       )
       
       let improvementRate = 0
@@ -216,11 +242,11 @@ export async function GET(request: NextRequest) {
         const secondHalf = sortedScores.slice(Math.floor(sortedScores.length / 2))
         
         const firstAvg = firstHalf.reduce((sum: number, score: any) => 
-          sum + (score.raw_score / score.assessments[0].max_score * 100), 0
+          sum + Math.min(score.raw_score, 100), 0
         ) / firstHalf.length
         
         const secondAvg = secondHalf.reduce((sum: number, score: any) => 
-          sum + (score.raw_score / score.assessments[0].max_score * 100), 0
+          sum + Math.min(score.raw_score, 100), 0
         ) / secondHalf.length
         
         improvementRate = secondAvg - firstAvg

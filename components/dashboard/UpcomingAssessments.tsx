@@ -6,9 +6,7 @@ interface Assessment {
   title: string
   date: string
   status: 'DRAFT' | 'PUBLISHED'
-  classes: {
-    name: string
-  } | null
+  class_id: string
 }
 
 interface UpcomingAssessmentsProps {
@@ -48,7 +46,7 @@ export function UpcomingAssessments({ assessments }: UpcomingAssessmentsProps) {
                           {assessment.title}
                         </p>
                         <p className="text-sm text-gray-500">
-                          {assessment.classes?.name}
+                          Class ID: {assessment.class_id}
                         </p>
                       </div>
                       <div className="flex items-center space-x-2">
