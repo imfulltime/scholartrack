@@ -26,13 +26,15 @@ interface EditAssessmentTypeFormProps {
   onClose: () => void
   onSuccess: () => void
   currentTotal: number // Total without this assessment type
+  gradingPeriodId?: string
 }
 
 export function EditAssessmentTypeForm({ 
   assessmentType, 
   onClose, 
   onSuccess, 
-  currentTotal 
+  currentTotal,
+  gradingPeriodId
 }: EditAssessmentTypeFormProps) {
   const [isLoading, setIsLoading] = useState(false)
 

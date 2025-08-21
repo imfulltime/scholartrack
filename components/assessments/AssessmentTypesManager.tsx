@@ -10,7 +10,12 @@ import { EditAssessmentTypeForm } from './EditAssessmentTypeForm'
 
 type AssessmentType = Database['public']['Tables']['assessment_types']['Row']
 
-export function AssessmentTypesManager() {
+interface AssessmentTypesManagerProps {
+  gradingPeriodId?: string
+  periodName?: string
+}
+
+export function AssessmentTypesManager({ gradingPeriodId, periodName }: AssessmentTypesManagerProps = {}) {
   const [assessmentTypes, setAssessmentTypes] = useState<AssessmentType[]>([])
   const [loading, setLoading] = useState(true)
   const [isCreating, setIsCreating] = useState(false)
@@ -24,7 +29,10 @@ export function AssessmentTypesManager() {
 
   const fetchAssessmentTypes = async () => {
     try {
-      const response = await fetch('/api/assessment-types')
+      const url = gradingPeriodId 
+        ? `/api/assessment-types?gradingPeriodId=${gradingPeriodId}`
+        : '/api/assessment-types'
+      const response = await fetch(url)
       if (response.ok) {
         const data = await response.json()
         setAssessmentTypes(data)
@@ -115,10 +123,17 @@ export function AssessmentTypesManager() {
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <BarChart3 className="h-6 w-6 text-indigo-600 mr-3" />
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900">Assessment Types</h2>
-            <p className="text-sm text-gray-500">Configure how final grades are calculated</p>
-          </div>
+                  <div>
+          <h2 className="text-lg font-semibold text-gray-900">
+            Assessment Types {periodName && `- ${periodName}`}
+          </h2>
+          <p className="text-sm text-gray-500">
+            {gradingPeriodId 
+              ? 'Configure assessment types for this grading period (must total 100%)'
+              : 'Configure how final grades are calculated'
+            }
+          </p>
+        </div>
         </div>
         <button
           onClick={() => setIsCreating(true)}
@@ -262,6 +277,7 @@ export function AssessmentTypesManager() {
             router.refresh()
           }}
           currentTotal={totalPercentage}
+          gradingPeriodId={gradingPeriodId}
         />
       )}
 
@@ -276,6 +292,7 @@ export function AssessmentTypesManager() {
             router.refresh()
           }}
           currentTotal={totalPercentage - editingType.percentage_weight}
+          gradingPeriodId={gradingPeriodId}
         />
       )}
     </div>

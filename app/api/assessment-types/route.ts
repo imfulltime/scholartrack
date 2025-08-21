@@ -8,6 +8,7 @@ const createAssessmentTypeSchema = z.object({
   description: z.string().max(500).optional(),
   percentage_weight: z.number().min(0.01).max(100),
   is_active: z.boolean().default(true),
+  grading_period_id: z.string().uuid().optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -18,13 +19,20 @@ export async function POST(request: NextRequest) {
     const validatedData = createAssessmentTypeSchema.parse(body)
     const supabase = createClient()
 
-    // Check if name already exists for this user
-    const { data: existingType } = await supabase
+    // Check if name already exists for this user in the same grading period
+    let existingTypeQuery = supabase
       .from('assessment_types')
       .select('id')
       .eq('name', validatedData.name)
       .eq('owner_id', user.id)
-      .single()
+
+    if (validatedData.grading_period_id) {
+      existingTypeQuery = existingTypeQuery.eq('grading_period_id', validatedData.grading_period_id)
+    } else {
+      existingTypeQuery = existingTypeQuery.is('grading_period_id', null)
+    }
+
+    const { data: existingType } = await existingTypeQuery.single()
 
     if (existingType) {
       return NextResponse.json(
@@ -33,13 +41,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // If active, check total percentage doesn't exceed 100%
+    // If active, check total percentage doesn't exceed 100% for this grading period
     if (validatedData.is_active) {
-      const { data: activeTypes } = await supabase
+      let activeTypesQuery = supabase
         .from('assessment_types')
         .select('percentage_weight')
         .eq('owner_id', user.id)
         .eq('is_active', true)
+
+      if (validatedData.grading_period_id) {
+        activeTypesQuery = activeTypesQuery.eq('grading_period_id', validatedData.grading_period_id)
+      } else {
+        activeTypesQuery = activeTypesQuery.is('grading_period_id', null)
+      }
+
+      const { data: activeTypes } = await activeTypesQuery
 
       const totalPercentage = (activeTypes || []).reduce(
         (sum, type) => sum + type.percentage_weight, 
@@ -92,15 +108,24 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser()
+    const { searchParams } = new URL(request.url)
+    const gradingPeriodId = searchParams.get('gradingPeriodId')
+    
     const supabase = createClient()
 
-    const { data: assessmentTypes, error } = await supabase
+    let query = supabase
       .from('assessment_types')
       .select('*')
       .eq('owner_id', user.id)
+
+    if (gradingPeriodId) {
+      query = query.eq('grading_period_id', gradingPeriodId)
+    }
+
+    const { data: assessmentTypes, error } = await query
       .order('is_default', { ascending: false })
       .order('percentage_weight', { ascending: false })
 

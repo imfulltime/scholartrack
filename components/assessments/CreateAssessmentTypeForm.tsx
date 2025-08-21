@@ -22,9 +22,10 @@ interface CreateAssessmentTypeFormProps {
   onClose: () => void
   onSuccess: () => void
   currentTotal: number
+  gradingPeriodId?: string
 }
 
-export function CreateAssessmentTypeForm({ onClose, onSuccess, currentTotal }: CreateAssessmentTypeFormProps) {
+export function CreateAssessmentTypeForm({ onClose, onSuccess, currentTotal, gradingPeriodId }: CreateAssessmentTypeFormProps) {
   const [isLoading, setIsLoading] = useState(false)
 
   const {
@@ -59,7 +60,10 @@ export function CreateAssessmentTypeForm({ onClose, onSuccess, currentTotal }: C
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          grading_period_id: gradingPeriodId
+        }),
       })
 
       if (!response.ok) {

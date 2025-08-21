@@ -217,6 +217,47 @@ export interface Database {
           updated_at?: string;
         };
       };
+      grading_periods: {
+        Row: {
+          id: string;
+          name: string;
+          period_number: number;
+          school_year: string;
+          start_date: string | null;
+          end_date: string | null;
+          is_active: boolean;
+          is_current: boolean;
+          owner_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          period_number: number;
+          school_year: string;
+          start_date?: string | null;
+          end_date?: string | null;
+          is_active?: boolean;
+          is_current?: boolean;
+          owner_id: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          period_number?: number;
+          school_year?: string;
+          start_date?: string | null;
+          end_date?: string | null;
+          is_active?: boolean;
+          is_current?: boolean;
+          owner_id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       assessment_types: {
         Row: {
           id: string;
@@ -225,6 +266,7 @@ export interface Database {
           percentage_weight: number;
           is_active: boolean;
           is_default: boolean;
+          grading_period_id: string | null;
           owner_id: string;
           created_at: string;
           updated_at: string;
@@ -236,6 +278,7 @@ export interface Database {
           percentage_weight: number;
           is_active?: boolean;
           is_default?: boolean;
+          grading_period_id?: string | null;
           owner_id: string;
           created_at?: string;
           updated_at?: string;
@@ -247,6 +290,7 @@ export interface Database {
           percentage_weight?: number;
           is_active?: boolean;
           is_default?: boolean;
+          grading_period_id?: string | null;
           owner_id?: string;
           created_at?: string;
           updated_at?: string;
@@ -263,6 +307,7 @@ export interface Database {
           max_score: number;
           status: 'DRAFT' | 'PUBLISHED';
           assessment_type_id: string | null;
+          grading_period_id: string | null;
           owner_id: string;
           created_at: string;
           updated_at: string;
@@ -277,6 +322,7 @@ export interface Database {
           max_score: number;
           status?: 'DRAFT' | 'PUBLISHED';
           assessment_type_id?: string | null;
+          grading_period_id?: string | null;
           owner_id: string;
           created_at?: string;
           updated_at?: string;
@@ -291,6 +337,7 @@ export interface Database {
           max_score?: number;
           status?: 'DRAFT' | 'PUBLISHED';
           assessment_type_id?: string | null;
+          grading_period_id?: string | null;
           owner_id?: string;
           created_at?: string;
           updated_at?: string;
