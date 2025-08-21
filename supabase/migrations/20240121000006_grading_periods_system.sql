@@ -133,6 +133,7 @@ BEGIN
 
     -- Create default assessment types for this period
     -- Quiz: 30%, Assignment: 40%, Exam: 30%
+    -- Use ON CONFLICT to handle existing assessment types gracefully
     INSERT INTO public.assessment_types (
       name, 
       description, 
@@ -143,7 +144,8 @@ BEGIN
     ) VALUES 
     ('Quizzes', 'Short assessments and recitations', 30.00, true, period_id, p_owner_id),
     ('Assignments', 'Homework, projects, and activities', 40.00, true, period_id, p_owner_id),
-    ('Exams', 'Periodic and major examinations', 30.00, true, period_id, p_owner_id);
+    ('Exams', 'Periodic and major examinations', 30.00, true, period_id, p_owner_id)
+    ON CONFLICT (owner_id, name) DO NOTHING;
 
     -- Add to result
     types_array := types_array || jsonb_build_array(
