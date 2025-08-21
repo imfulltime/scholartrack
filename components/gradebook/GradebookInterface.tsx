@@ -12,7 +12,7 @@ interface Student {
   middle_name: string | null
   display_name: string
   full_name: string | null // backward compatibility
-  external_id: string
+  external_id: string | null
   raw_score: number | null
   comment: string
 }
