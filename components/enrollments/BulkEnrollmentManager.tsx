@@ -9,8 +9,11 @@ import { z } from 'zod'
 
 interface Student {
   id: string
-  full_name: string
-  external_id?: string
+  family_name: string
+  first_name: string
+  middle_name?: string | null
+  display_name?: string
+  external_id?: string | null
   year_level: number
   isEnrolled?: boolean
 }
@@ -281,7 +284,7 @@ export default function BulkEnrollmentManager({ classId }: BulkEnrollmentManager
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
                     <div className="ml-3">
-                      <p className="font-medium text-gray-900">{student.full_name}</p>
+                      <p className="font-medium text-gray-900">{student.display_name || `${student.family_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`}</p>
                       <p className="text-sm text-gray-500">
                         {student.external_id && `ID: ${student.external_id} • `}
                         Year {student.year_level}
@@ -391,7 +394,7 @@ export default function BulkEnrollmentManager({ classId }: BulkEnrollmentManager
                       className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                     />
                     <div className="ml-3">
-                      <p className="font-medium text-gray-900">{student.full_name}</p>
+                      <p className="font-medium text-gray-900">{student.display_name || `${student.family_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`}</p>
                       <p className="text-sm text-gray-500">
                         {student.external_id && `ID: ${student.external_id} • `}
                         Year {student.year_level}

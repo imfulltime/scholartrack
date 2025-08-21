@@ -62,10 +62,29 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Insert students in batch
-    const studentsToInsert = validStudents.map(student => 
-      withOwnership(student, user.id)
-    )
+    // Transform full_name into structured fields and insert students in batch
+    const studentsToInsert = validStudents.map(student => {
+      const parts = student.full_name.trim().split(/\s+/)
+      const family_name = parts.length >= 2 ? parts[parts.length - 1] : parts[0]
+      const first_name = parts[0]
+      const middle_name = parts.length > 2 ? parts.slice(1, parts.length - 1).join(' ') : null
+      const display_name = `${family_name}, ${first_name}${middle_name ? ' ' + middle_name : ''}`
+      const full_name_bc = `${first_name}${middle_name ? ' ' + middle_name : ''} ${family_name}`
+
+      return withOwnership(
+        {
+          family_name,
+          first_name,
+          middle_name,
+          // display_name column exists server-side
+          display_name,
+          full_name: full_name_bc,
+          year_level: student.year_level,
+          external_id: student.external_id ?? null,
+        },
+        user.id
+      )
+    })
 
     const { data: insertedStudents, error } = await supabase
       .from('students')

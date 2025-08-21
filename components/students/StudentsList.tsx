@@ -118,7 +118,7 @@ export function StudentsList({ students }: StudentsListProps) {
                                       <button
                       onClick={() => setEditingStudent(student)}
                       className="text-indigo-600 hover:text-indigo-900 p-2 rounded-md hover:bg-indigo-50"
-                      aria-label={`Edit ${student.full_name}`}
+                      aria-label={`Edit ${student.display_name || `${student.family_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`}`}
                     >
                       <Edit2 className="h-4 w-4" />
                     </button>
@@ -126,7 +126,7 @@ export function StudentsList({ students }: StudentsListProps) {
                     onClick={() => handleDelete(student.id, student.display_name || `${student.family_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`)}
                     disabled={deletingId === student.id}
                     className="text-red-600 hover:text-red-900 p-2 rounded-md hover:bg-red-50 disabled:opacity-50"
-                    aria-label={`Delete ${student.full_name}`}
+                    aria-label={`Delete ${student.display_name || `${student.family_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`}`}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>

@@ -51,7 +51,7 @@ export default async function ClassPage({ params }: ClassPageProps) {
         .from('enrollments')
         .select(`
           *,
-          students(id, full_name, year_level, external_id)
+          students(id, family_name, first_name, middle_name, display_name, year_level, external_id)
         `)
         .eq('class_id', params.classId)
         .eq('owner_id', user.id)

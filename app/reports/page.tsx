@@ -52,7 +52,8 @@ export default async function ReportsPage() {
       .from('students')
       .select('*')
       .eq('owner_id', user.id)
-      .order('full_name')
+      .order('family_name')
+      .order('first_name')
 
     if (studentsError) {
       console.error('Students fetch error:', studentsError)

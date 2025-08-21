@@ -36,9 +36,27 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Compute names for backward-compat and to avoid relying solely on DB triggers
+    const computedFullName = `${validatedData.first_name}${validatedData.middle_name ? ' ' + validatedData.middle_name : ''} ${validatedData.family_name}`
+    const computedDisplayName = `${validatedData.family_name}, ${validatedData.first_name}${validatedData.middle_name ? ' ' + validatedData.middle_name : ''}`
+
+    const insertPayload = withOwnership(
+      {
+        family_name: validatedData.family_name,
+        first_name: validatedData.first_name,
+        middle_name: validatedData.middle_name ?? null,
+        full_name: computedFullName,
+        // display_name column exists server-side
+        display_name: computedDisplayName,
+        year_level: validatedData.year_level,
+        external_id: validatedData.external_id ?? null,
+      },
+      user.id
+    )
+
     const { data: student, error } = await supabase
       .from('students')
-      .insert(withOwnership(validatedData, user.id))
+      .insert(insertPayload)
       .select()
       .single()
 
@@ -88,7 +106,8 @@ export async function GET() {
       .from('students')
       .select('*')
       .eq('owner_id', user.id)
-      .order('full_name')
+      .order('family_name')
+      .order('first_name')
 
     if (error) {
       return NextResponse.json(

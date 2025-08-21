@@ -6,7 +6,10 @@ import toast from 'react-hot-toast'
 
 interface Student {
   id: string
-  full_name: string
+  family_name: string
+  first_name: string
+  middle_name: string | null
+  display_name: string
   year_level: number
   external_id: string | null
 }
@@ -88,7 +91,7 @@ export function StudentReports({ students }: StudentReportsProps) {
             <option value="">Choose a student...</option>
             {students.map((student) => (
               <option key={student.id} value={student.id}>
-                {student.full_name} 
+                {student.display_name || `${student.family_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`} 
                 {student.external_id && ` (${student.external_id})`}
                 {` - Grade ${student.year_level}`}
               </option>
@@ -108,7 +111,7 @@ export function StudentReports({ students }: StudentReportsProps) {
                     <div className="flex items-start justify-between">
                       <div>
                         <h4 className="text-lg font-medium text-indigo-900">
-                          {studentData.full_name}
+                          {studentData.display_name || `${studentData.family_name}, ${studentData.first_name}${studentData.middle_name ? ' ' + studentData.middle_name : ''}`}
                         </h4>
                         <p className="text-sm text-indigo-700">
                           Grade {studentData.year_level}
@@ -135,7 +138,7 @@ export function StudentReports({ students }: StudentReportsProps) {
                   </div>
 
                   <button
-                    onClick={() => handleGeneratePDF(studentData.id, studentData.full_name)}
+                    onClick={() => handleGeneratePDF(studentData.id, studentData.display_name || `${studentData.family_name}, ${studentData.first_name}${studentData.middle_name ? ' ' + studentData.middle_name : ''}`)}
                     disabled={isGeneratingPDF}
                     className="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
                   >
