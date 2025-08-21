@@ -2,10 +2,11 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Edit2, Trash2, BookOpen } from 'lucide-react'
+import { Edit2, Trash2, BookOpen, Camera, Image } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { Database } from '@/types/database'
 import { EditSubjectForm } from './EditSubjectForm'
+import { SubjectPhotoUpload } from './SubjectPhotoUpload'
 
 type Subject = Database['public']['Tables']['subjects']['Row']
 
@@ -16,6 +17,7 @@ interface SubjectsListProps {
 export function SubjectsList({ subjects }: SubjectsListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null)
+  const [uploadingPhotoSubject, setUploadingPhotoSubject] = useState<Subject | null>(null)
   const router = useRouter()
 
   const handleDelete = async (id: string) => {
@@ -64,9 +66,22 @@ export function SubjectsList({ subjects }: SubjectsListProps) {
             <div className="px-4 py-4 flex items-center justify-between">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className="h-10 w-10 rounded-lg bg-indigo-100 flex items-center justify-center">
-                    <BookOpen className="h-6 w-6 text-indigo-600" />
-                  </div>
+                  {subject.photo_url ? (
+                    <div className="relative">
+                      <img
+                        src={subject.photo_url}
+                        alt={`${subject.name} photo`}
+                        className="h-12 w-12 rounded-lg object-cover border-2 border-indigo-200"
+                      />
+                      <div className="absolute -top-1 -right-1 h-4 w-4 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                        <Image className="h-2 w-2 text-white" />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="h-12 w-12 rounded-lg bg-indigo-100 flex items-center justify-center">
+                      <BookOpen className="h-6 w-6 text-indigo-600" />
+                    </div>
+                  )}
                 </div>
                 <div className="ml-4">
                   <div className="text-sm font-medium text-gray-900">
@@ -74,10 +89,27 @@ export function SubjectsList({ subjects }: SubjectsListProps) {
                   </div>
                   <div className="text-sm text-gray-500">
                     Code: {subject.code}
+                    {subject.photo_url && (
+                      <span className="ml-2 inline-flex items-center text-xs text-green-600">
+                        <Image className="h-3 w-3 mr-1" />
+                        Photo added
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setUploadingPhotoSubject(subject)}
+                  className={`p-2 rounded-md transition-colors ${
+                    subject.photo_url 
+                      ? 'text-green-600 hover:text-green-800 hover:bg-green-50' 
+                      : 'text-purple-600 hover:text-purple-800 hover:bg-purple-50'
+                  }`}
+                  aria-label={`${subject.photo_url ? 'Manage' : 'Add'} photo for ${subject.name}`}
+                >
+                  <Camera className="h-4 w-4" />
+                </button>
                 <button
                   onClick={() => setEditingSubject(subject)}
                   className="text-indigo-600 hover:text-indigo-900 p-2 rounded-md hover:bg-indigo-50"
@@ -105,6 +137,17 @@ export function SubjectsList({ subjects }: SubjectsListProps) {
           onClose={() => setEditingSubject(null)}
           onSuccess={() => {
             setEditingSubject(null)
+            router.refresh()
+          }}
+        />
+      )}
+      
+      {uploadingPhotoSubject && (
+        <SubjectPhotoUpload
+          subject={uploadingPhotoSubject}
+          onClose={() => setUploadingPhotoSubject(null)}
+          onSuccess={() => {
+            setUploadingPhotoSubject(null)
             router.refresh()
           }}
         />

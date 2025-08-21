@@ -126,8 +126,9 @@ export function EnrollmentManager({
               <option value="">Select a student</option>
               {availableStudents.map((student) => (
                 <option key={student.id} value={student.id}>
-                  {student.full_name}
+                  {student.display_name || `${student.family_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`}
                   {student.external_id && ` (${student.external_id})`}
+                  {` - Grade ${student.year_level}`}
                 </option>
               ))}
             </select>
@@ -167,7 +168,7 @@ export function EnrollmentManager({
             >
               <div>
                 <div className="text-sm font-medium text-gray-900">
-                  {enrollment.students?.full_name}
+                  {enrollment.students?.display_name || `${enrollment.students?.family_name}, ${enrollment.students?.first_name}${enrollment.students?.middle_name ? ' ' + enrollment.students.middle_name : ''}`}
                 </div>
                 {enrollment.students?.external_id && (
                   <div className="text-xs text-gray-500">
@@ -178,11 +179,11 @@ export function EnrollmentManager({
               <button
                 onClick={() => handleRemoveStudent(
                   enrollment.student_id,
-                  enrollment.students?.full_name || ''
+                  enrollment.students?.display_name || `${enrollment.students?.family_name}, ${enrollment.students?.first_name}${enrollment.students?.middle_name ? ' ' + enrollment.students.middle_name : ''}` || ''
                 )}
                 disabled={removingId === enrollment.student_id}
                 className="text-red-600 hover:text-red-800 p-1 rounded disabled:opacity-50"
-                aria-label={`Remove ${enrollment.students?.full_name}`}
+                aria-label={`Remove ${enrollment.students?.display_name || `${enrollment.students?.family_name}, ${enrollment.students?.first_name}${enrollment.students?.middle_name ? ' ' + enrollment.students.middle_name : ''}`}`}
               >
                 <X className="h-4 w-4" />
               </button>

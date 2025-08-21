@@ -1,9 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
-import { StudentsList } from '@/components/students/StudentsList'
-import { CreateStudentForm } from '@/components/students/CreateStudentForm'
-import { ImportStudentsForm } from '@/components/students/ImportStudentsForm'
+import { StudentsPageClient } from '@/components/students/StudentsPageClient'
 import PageWrapper from '@/components/layout/PageWrapper'
-import { Users, Upload } from 'lucide-react'
+import { Users } from 'lucide-react'
 
 export default async function StudentsPage() {
   const supabase = createClient()
@@ -18,12 +16,19 @@ export default async function StudentsPage() {
     .from('students')
     .select('*')
     .eq('owner_id', user.id)
-    .order('full_name')
+    .order('family_name')
+    .order('first_name')
+
+  // Calculate grade level distribution
+  const gradeDistribution = students?.reduce((acc, student) => {
+    acc[student.year_level] = (acc[student.year_level] || 0) + 1
+    return acc
+  }, {} as Record<number, number>) || {}
 
   return (
     <PageWrapper
-      title="Students"
-      subtitle={`Manage your students and their information. Total: ${students?.length || 0} students`}
+      title="Students Management"
+      subtitle={`Manage your students and their information. Total: ${students?.length || 0} students across ${Object.keys(gradeDistribution).length} grade levels`}
       actions={[
         {
           label: 'View Classes',
@@ -38,13 +43,10 @@ export default async function StudentsPage() {
         }
       ]}
     >
-      <div className="space-y-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <CreateStudentForm />
-          <ImportStudentsForm />
-        </div>
-        <StudentsList students={students || []} />
-      </div>
+      <StudentsPageClient 
+        students={students || []} 
+        gradeDistribution={gradeDistribution}
+      />
     </PageWrapper>
   )
 }

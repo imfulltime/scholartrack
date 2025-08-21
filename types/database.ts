@@ -71,6 +71,9 @@ export interface Database {
           id: string;
           name: string;
           code: string;
+          photo_url: string | null;
+          photo_public_id: string | null;
+          photo_uploaded_at: string | null;
           owner_id: string;
           created_at: string;
           updated_at: string;
@@ -79,6 +82,9 @@ export interface Database {
           id?: string;
           name: string;
           code: string;
+          photo_url?: string | null;
+          photo_public_id?: string | null;
+          photo_uploaded_at?: string | null;
           owner_id: string;
           created_at?: string;
           updated_at?: string;
@@ -87,6 +93,9 @@ export interface Database {
           id?: string;
           name?: string;
           code?: string;
+          photo_url?: string | null;
+          photo_public_id?: string | null;
+          photo_uploaded_at?: string | null;
           owner_id?: string;
           created_at?: string;
           updated_at?: string;
