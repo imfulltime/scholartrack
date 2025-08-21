@@ -87,6 +87,11 @@ export default async function ClassesPage() {
           label: 'View Reports',
           href: '/reports',
           variant: 'secondary'
+        },
+        {
+          label: 'Grading Settings',
+          href: '/settings/grading',
+          variant: 'secondary'
         }
       ]}
     >

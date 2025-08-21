@@ -36,6 +36,11 @@ export default async function SubjectsPage() {
           label: 'Analytics',
           href: '/analytics',
           variant: 'secondary'
+        },
+        {
+          label: 'Grading Settings',
+          href: '/settings/grading',
+          variant: 'secondary'
         }
       ]}
     >

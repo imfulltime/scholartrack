@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -8,12 +8,16 @@ import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { Plus, X } from 'lucide-react'
 import { format } from 'date-fns'
+import { Database } from '@/types/database'
+
+type AssessmentType = Database['public']['Tables']['assessment_types']['Row']
 
 const assessmentSchema = z.object({
   title: z.string().min(1, 'Assessment title is required'),
   type: z.enum(['QUIZ', 'EXAM', 'ASSIGNMENT'], {
     required_error: 'Assessment type is required',
   }),
+  assessment_type_id: z.string().uuid('Please select an assessment type').optional(),
   date: z.string().min(1, 'Date is required'),
   max_score: z.number().min(0.01, 'Max score must be greater than 0'),
   weight: z.number().min(0, 'Weight cannot be negative').default(1),
@@ -28,7 +32,26 @@ interface CreateAssessmentFormProps {
 export function CreateAssessmentForm({ classId }: CreateAssessmentFormProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [assessmentTypes, setAssessmentTypes] = useState<AssessmentType[]>([])
   const router = useRouter()
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchAssessmentTypes()
+    }
+  }, [isOpen])
+
+  const fetchAssessmentTypes = async () => {
+    try {
+      const response = await fetch('/api/assessment-types')
+      if (response.ok) {
+        const data = await response.json()
+        setAssessmentTypes(data.filter((type: AssessmentType) => type.is_active))
+      }
+    } catch (error) {
+      console.error('Error fetching assessment types:', error)
+    }
+  }
 
   const {
     register,
@@ -122,7 +145,7 @@ export function CreateAssessmentForm({ classId }: CreateAssessmentFormProps) {
 
           <div>
             <label htmlFor="type" className="block text-sm font-medium text-gray-700">
-              Type
+              Basic Type
             </label>
             <select
               {...register('type')}
@@ -136,6 +159,30 @@ export function CreateAssessmentForm({ classId }: CreateAssessmentFormProps) {
             {errors.type && (
               <p className="mt-1 text-sm text-red-600">{errors.type.message}</p>
             )}
+          </div>
+
+          <div>
+            <label htmlFor="assessment_type_id" className="block text-sm font-medium text-gray-700">
+              Assessment Category
+              <span className="text-gray-500 text-xs ml-1">(for grade calculation)</span>
+            </label>
+            <select
+              {...register('assessment_type_id')}
+              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            >
+              <option value="">Select category (optional)</option>
+              {assessmentTypes.map((type) => (
+                <option key={type.id} value={type.id}>
+                  {type.name} ({type.percentage_weight}%)
+                </option>
+              ))}
+            </select>
+            {errors.assessment_type_id && (
+              <p className="mt-1 text-sm text-red-600">{errors.assessment_type_id.message}</p>
+            )}
+            <p className="mt-1 text-xs text-gray-500">
+              Choose a category to include this assessment in final grade calculations
+            </p>
           </div>
 
           <div>
