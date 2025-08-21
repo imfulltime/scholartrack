@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     // Log the action
     await logAudit(user.id, 'CREATE', 'student', student.id, {
-      name: student.full_name,
+      name: student.display_name || `${student.family_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`,
       year_level: student.year_level,
       external_id: student.external_id,
     })
