@@ -6,7 +6,7 @@ ALTER TABLE public.grading_periods
 DROP CONSTRAINT IF EXISTS grading_periods_owner_id_is_current_excl;
 
 -- Create a unique partial index instead
-CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS idx_grading_periods_one_current_per_owner 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_grading_periods_one_current_per_owner 
 ON public.grading_periods (owner_id) 
 WHERE is_current = true;
 
