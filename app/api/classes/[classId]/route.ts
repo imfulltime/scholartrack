@@ -4,7 +4,7 @@ import { getCurrentUser, logAudit } from '@/lib/api'
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { classId: string } }
 ) {
   try {
     const user = await getCurrentUser()
@@ -14,7 +14,7 @@ export async function DELETE(
     const { data: classData, error: fetchError } = await supabase
       .from('classes')
       .select('*, subjects(name)')
-      .eq('id', params.id)
+      .eq('id', params.classId)
       .eq('owner_id', user.id)
       .single()
 
@@ -29,10 +29,11 @@ export async function DELETE(
     const { error: deleteError } = await supabase
       .from('classes')
       .delete()
-      .eq('id', params.id)
+      .eq('id', params.classId)
       .eq('owner_id', user.id)
 
     if (deleteError) {
+      console.error('Class delete error:', deleteError)
       return NextResponse.json(
         { error: 'Failed to delete class' },
         { status: 500 }
@@ -40,14 +41,15 @@ export async function DELETE(
     }
 
     // Log the action
-    await logAudit(user.id, 'DELETE', 'class', params.id, {
+    await logAudit(user.id, 'DELETE', 'class', params.classId, {
       name: classData.name,
-      subject: classData.subjects?.name,
+      subject: (classData.subjects as any)?.name,
       year_level: classData.year_level,
     })
 
     return NextResponse.json({ success: true })
   } catch (error) {
+    console.error('Class delete error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -32,7 +32,7 @@ export function SubjectPhotoUpload({ subject, onClose, onSuccess }: SubjectPhoto
 
   const fetchPhotos = async () => {
     try {
-      const response = await fetch(`/api/subjects/photos/${subject.id}`)
+      const response = await fetch(`/api/subjects/photos?subjectId=${subject.id}`)
       if (response.ok) {
         const data = await response.json()
         setPhotos(data)
