@@ -16,9 +16,7 @@ CREATE TABLE IF NOT EXISTS public.grading_periods (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   
   -- Ensure unique period number per school year per teacher
-  UNIQUE(owner_id, school_year, period_number),
-  -- Ensure only one current period per teacher
-  EXCLUDE USING gist (owner_id WITH =, is_current WITH =) WHERE (is_current = true)
+  UNIQUE(owner_id, school_year, period_number)
 );
 
 -- Add grading period reference to assessment_types
@@ -38,6 +36,35 @@ CREATE INDEX IF NOT EXISTS idx_assessments_grading_period ON public.assessments(
 
 -- Enable RLS
 ALTER TABLE public.grading_periods ENABLE ROW LEVEL SECURITY;
+
+-- Create a unique partial index to enforce only one current period per owner
+CREATE UNIQUE INDEX IF NOT EXISTS idx_grading_periods_one_current_per_owner 
+ON public.grading_periods (owner_id) 
+WHERE is_current = true;
+
+-- Add a trigger function to enforce only one current period per owner
+CREATE OR REPLACE FUNCTION public.enforce_single_current_period()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- If setting is_current to true, set all others to false for this owner
+  IF NEW.is_current = true THEN
+    UPDATE public.grading_periods 
+    SET is_current = false 
+    WHERE owner_id = NEW.owner_id 
+    AND id != NEW.id 
+    AND is_current = true;
+  END IF;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create the trigger
+CREATE TRIGGER enforce_single_current_period_trigger
+  BEFORE INSERT OR UPDATE ON public.grading_periods
+  FOR EACH ROW 
+  WHEN (NEW.is_current = true)
+  EXECUTE FUNCTION public.enforce_single_current_period();
 
 -- RLS Policies for grading_periods
 CREATE POLICY "Teachers can manage their grading periods" ON public.grading_periods
