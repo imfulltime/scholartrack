@@ -1,8 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
-import { ClassesList } from '@/components/classes/ClassesList'
-import { CreateClassForm } from '@/components/classes/CreateClassForm'
+import { ClassesPageClient } from '@/components/classes/ClassesPageClient'
 import PageWrapper from '@/components/layout/PageWrapper'
-import { BookOpen, Users } from 'lucide-react'
+import { Users, BookOpen } from 'lucide-react'
 
 export default async function ClassesPage() {
   const supabase = createClient()
@@ -61,10 +60,16 @@ export default async function ClassesPage() {
     // Continue with empty arrays to prevent page crash
   }
 
+  // Calculate grade distribution
+  const gradeDistribution = classes?.reduce((acc, classItem) => {
+    acc[classItem.year_level] = (acc[classItem.year_level] || 0) + 1
+    return acc
+  }, {} as Record<number, number>) || {}
+
   return (
     <PageWrapper
-      title="Classes"
-      subtitle={`Manage your classes and their enrollments. Total: ${classes?.length || 0} classes`}
+      title="Classes Management"
+      subtitle={`Manage your classes and enrollments. Total: ${classes?.length || 0} classes across ${Object.keys(gradeDistribution).length} grade levels`}
       actions={[
         {
           label: 'Manage Subjects',
@@ -85,10 +90,11 @@ export default async function ClassesPage() {
         }
       ]}
     >
-      <div className="space-y-8">
-        <CreateClassForm subjects={subjects} />
-        <ClassesList classes={classes} subjects={subjects} />
-      </div>
+      <ClassesPageClient 
+        classes={classes} 
+        subjects={subjects} 
+        gradeDistribution={gradeDistribution}
+      />
     </PageWrapper>
   )
 }

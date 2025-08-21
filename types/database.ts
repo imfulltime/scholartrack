@@ -101,6 +101,44 @@ export interface Database {
           updated_at?: string;
         };
       };
+      subject_photos: {
+        Row: {
+          id: string;
+          subject_id: string;
+          photo_url: string;
+          photo_public_id: string | null;
+          caption: string | null;
+          display_order: number;
+          expires_at: string;
+          owner_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          subject_id: string;
+          photo_url: string;
+          photo_public_id?: string | null;
+          caption?: string | null;
+          display_order?: number;
+          expires_at: string;
+          owner_id: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          subject_id?: string;
+          photo_url?: string;
+          photo_public_id?: string | null;
+          caption?: string | null;
+          display_order?: number;
+          expires_at?: string;
+          owner_id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       classes: {
         Row: {
           id: string;
@@ -179,6 +217,41 @@ export interface Database {
           updated_at?: string;
         };
       };
+      assessment_types: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          percentage_weight: number;
+          is_active: boolean;
+          is_default: boolean;
+          owner_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          percentage_weight: number;
+          is_active?: boolean;
+          is_default?: boolean;
+          owner_id: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string | null;
+          percentage_weight?: number;
+          is_active?: boolean;
+          is_default?: boolean;
+          owner_id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       assessments: {
         Row: {
           id: string;
@@ -189,6 +262,7 @@ export interface Database {
           weight: number;
           max_score: number;
           status: 'DRAFT' | 'PUBLISHED';
+          assessment_type_id: string | null;
           owner_id: string;
           created_at: string;
           updated_at: string;
@@ -202,6 +276,7 @@ export interface Database {
           weight?: number;
           max_score: number;
           status?: 'DRAFT' | 'PUBLISHED';
+          assessment_type_id?: string | null;
           owner_id: string;
           created_at?: string;
           updated_at?: string;
@@ -215,6 +290,7 @@ export interface Database {
           weight?: number;
           max_score?: number;
           status?: 'DRAFT' | 'PUBLISHED';
+          assessment_type_id?: string | null;
           owner_id?: string;
           created_at?: string;
           updated_at?: string;

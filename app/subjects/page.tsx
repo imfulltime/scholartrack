@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { SubjectsList } from '@/components/subjects/SubjectsList'
-import { CreateSubjectForm } from '@/components/subjects/CreateSubjectForm'
+import { SubjectsPageClient } from '@/components/subjects/SubjectsPageClient'
 import PageWrapper from '@/components/layout/PageWrapper'
 
 export default async function SubjectsPage() {
@@ -40,10 +39,7 @@ export default async function SubjectsPage() {
         }
       ]}
     >
-      <div className="space-y-8">
-        <CreateSubjectForm />
-        <SubjectsList subjects={subjects || []} />
-      </div>
+      <SubjectsPageClient subjects={subjects || []} />
     </PageWrapper>
   )
 }
