@@ -4,7 +4,9 @@ import { getCurrentUser, logAudit, withOwnership } from '@/lib/api'
 import { z } from 'zod'
 
 const createStudentSchema = z.object({
-  full_name: z.string().min(1),
+  family_name: z.string().min(1),
+  first_name: z.string().min(1),
+  middle_name: z.string().optional(),
   year_level: z.number().min(1).max(12),
   external_id: z.string().optional(),
 })

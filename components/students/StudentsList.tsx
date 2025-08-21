@@ -19,10 +19,19 @@ export function StudentsList({ students }: StudentsListProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const router = useRouter()
 
-  const filteredStudents = students.filter(student =>
-    student.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (student.external_id && student.external_id.toLowerCase().includes(searchTerm.toLowerCase()))
-  )
+  const filteredAndSortedStudents = students
+    .filter(student => {
+      const searchLower = searchTerm.toLowerCase()
+      const displayName = student.display_name || `${student.family_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`
+      return displayName.toLowerCase().includes(searchLower) ||
+        (student.external_id && student.external_id.toLowerCase().includes(searchLower))
+    })
+    .sort((a, b) => {
+      // Sort by family name first, then by first name
+      const familyCompare = (a.family_name || '').localeCompare(b.family_name || '')
+      if (familyCompare !== 0) return familyCompare
+      return (a.first_name || '').localeCompare(b.first_name || '')
+    })
 
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Are you sure you want to delete ${name}? This will also remove them from all classes and delete their scores.`)) {
@@ -84,20 +93,20 @@ export function StudentsList({ students }: StudentsListProps) {
         </div>
 
         <ul role="list" className="divide-y divide-gray-200">
-          {filteredStudents.map((student) => (
+          {filteredAndSortedStudents.map((student) => (
             <li key={student.id}>
               <div className="px-4 py-4 flex items-center justify-between">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
                       <span className="text-sm font-medium text-indigo-700">
-                        {student.full_name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                        {(student.first_name?.[0] || '') + (student.family_name?.[0] || '')}
                       </span>
                     </div>
                   </div>
                   <div className="ml-4">
                     <div className="text-sm font-medium text-gray-900">
-                      {student.full_name}
+                      {student.display_name || `${student.family_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`}
                     </div>
                     <div className="text-sm text-gray-500">
                       Grade {student.year_level}
@@ -114,7 +123,7 @@ export function StudentsList({ students }: StudentsListProps) {
                       <Edit2 className="h-4 w-4" />
                     </button>
                   <button
-                    onClick={() => handleDelete(student.id, student.full_name)}
+                    onClick={() => handleDelete(student.id, student.display_name || `${student.family_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`)}
                     disabled={deletingId === student.id}
                     className="text-red-600 hover:text-red-900 p-2 rounded-md hover:bg-red-50 disabled:opacity-50"
                     aria-label={`Delete ${student.full_name}`}
@@ -127,7 +136,7 @@ export function StudentsList({ students }: StudentsListProps) {
           ))}
         </ul>
 
-        {filteredStudents.length === 0 && searchTerm && (
+        {filteredAndSortedStudents.length === 0 && searchTerm && (
           <div className="text-center py-8">
             <Search className="mx-auto h-8 w-8 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900">No students found</h3>

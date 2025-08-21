@@ -30,7 +30,11 @@ export interface Database {
       students: {
         Row: {
           id: string;
-          full_name: string;
+          family_name: string;
+          first_name: string;
+          middle_name: string | null;
+          display_name: string;
+          full_name: string | null; // Deprecated, for backward compatibility
           year_level: number;
           external_id: string | null;
           owner_id: string;
@@ -39,7 +43,10 @@ export interface Database {
         };
         Insert: {
           id?: string;
-          full_name: string;
+          family_name: string;
+          first_name: string;
+          middle_name?: string | null;
+          full_name?: string | null; // Deprecated
           year_level: number;
           external_id?: string | null;
           owner_id: string;
@@ -48,7 +55,10 @@ export interface Database {
         };
         Update: {
           id?: string;
-          full_name?: string;
+          family_name?: string;
+          first_name?: string;
+          middle_name?: string | null;
+          full_name?: string | null; // Deprecated
           year_level?: number;
           external_id?: string | null;
           owner_id?: string;

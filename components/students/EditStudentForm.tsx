@@ -8,7 +8,9 @@ import { toast } from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
 
 const studentSchema = z.object({
-  full_name: z.string().min(1, 'Full name is required'),
+  family_name: z.string().min(1, 'Family name is required'),
+  first_name: z.string().min(1, 'First name is required'),
+  middle_name: z.string().optional(),
   external_id: z.string().optional(),
   year_level: z.number().min(1).max(12),
 })
@@ -18,7 +20,11 @@ type StudentFormData = z.infer<typeof studentSchema>
 interface EditStudentFormProps {
   student: {
     id: string
-    full_name: string
+    family_name: string
+    first_name: string
+    middle_name: string | null
+    display_name: string
+    full_name: string | null // backward compatibility
     external_id?: string | null
     year_level: number
   }
@@ -37,7 +43,9 @@ export function EditStudentForm({ student, onClose, onSuccess }: EditStudentForm
   } = useForm<StudentFormData>({
     resolver: zodResolver(studentSchema),
     defaultValues: {
-      full_name: student.full_name,
+      family_name: student.family_name,
+      first_name: student.first_name,
+      middle_name: student.middle_name || '',
       external_id: student.external_id || '',
       year_level: student.year_level,
     },
@@ -80,19 +88,51 @@ export function EditStudentForm({ student, onClose, onSuccess }: EditStudentForm
           <h3 className="text-lg font-medium text-gray-900 mb-4">Edit Student</h3>
           
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Full Name
-              </label>
-              <input
-                {...register('full_name')}
-                type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., John Doe"
-              />
-              {errors.full_name && (
-                <p className="text-sm text-red-600 mt-1">{errors.full_name.message}</p>
-              )}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Family Name *
+                </label>
+                <input
+                  {...register('family_name')}
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Last name"
+                />
+                {errors.family_name && (
+                  <p className="text-sm text-red-600 mt-1">{errors.family_name.message}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  First Name *
+                </label>
+                <input
+                  {...register('first_name')}
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="First name"
+                />
+                {errors.first_name && (
+                  <p className="text-sm text-red-600 mt-1">{errors.first_name.message}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Middle Name
+                </label>
+                <input
+                  {...register('middle_name')}
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Middle name (optional)"
+                />
+                {errors.middle_name && (
+                  <p className="text-sm text-red-600 mt-1">{errors.middle_name.message}</p>
+                )}
+              </div>
             </div>
 
             <div>

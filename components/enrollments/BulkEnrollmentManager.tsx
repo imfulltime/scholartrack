@@ -97,18 +97,15 @@ export default function BulkEnrollmentManager({ classId }: BulkEnrollmentManager
   }
 
   const handleSelectAll = (enrolled: boolean) => {
-    const filteredStudents = students.filter(s => s.isEnrolled === enrolled)
-    const newSelected = new Set(selectedStudents)
-    
-    filteredStudents.forEach(student => {
-      if (enrolled && student.isEnrolled) {
-        newSelected.add(student.id)
-      } else if (!enrolled && !student.isEnrolled) {
-        newSelected.add(student.id)
-      }
-    })
-    
-    setSelectedStudents(newSelected)
+    if (enrolled) {
+      // Select all enrolled students
+      const enrolledIds = enrolledStudents.map(s => s.id)
+      setSelectedStudents(new Set(enrolledIds))
+    } else {
+      // Select all unenrolled (available) students  
+      const unenrolledIds = unenrolledStudents.map(s => s.id)
+      setSelectedStudents(new Set(unenrolledIds))
+    }
   }
 
   const handleBulkEnroll = async () => {

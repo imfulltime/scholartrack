@@ -7,7 +7,11 @@ import { Save, ArrowLeft } from 'lucide-react'
 
 interface Student {
   id: string
-  full_name: string
+  family_name: string
+  first_name: string
+  middle_name: string | null
+  display_name: string
+  full_name: string | null // backward compatibility
   external_id: string
   raw_score: number | null
   comment: string

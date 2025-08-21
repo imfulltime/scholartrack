@@ -9,7 +9,9 @@ import toast from 'react-hot-toast'
 import { Plus, X } from 'lucide-react'
 
 const studentSchema = z.object({
-  full_name: z.string().min(1, 'Student name is required'),
+  family_name: z.string().min(1, 'Family name is required'),
+  first_name: z.string().min(1, 'First name is required'),
+  middle_name: z.string().optional(),
   year_level: z.number().min(1, 'Year level must be at least 1').max(12, 'Year level must be at most 12'),
   external_id: z.string().optional(),
 })
@@ -92,19 +94,54 @@ export function CreateStudentForm() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <label htmlFor="full_name" className="block text-sm font-medium text-gray-700">
-            Full Name
-          </label>
-          <input
-            {...register('full_name')}
-            type="text"
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            placeholder="e.g., John Smith"
-          />
-          {errors.full_name && (
-            <p className="mt-1 text-sm text-red-600">{errors.full_name.message}</p>
-          )}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div>
+            <label htmlFor="family_name" className="block text-sm font-medium text-gray-700">
+              Family Name *
+            </label>
+            <input
+              type="text"
+              id="family_name"
+              {...register('family_name')}
+              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="Last name"
+            />
+            {errors.family_name && (
+              <p className="mt-1 text-sm text-red-600">{errors.family_name.message}</p>
+            )}
+          </div>
+
+          <div>
+            <label htmlFor="first_name" className="block text-sm font-medium text-gray-700">
+              First Name *
+            </label>
+            <input
+              type="text"
+              id="first_name"
+              {...register('first_name')}
+              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="First name"
+            />
+            {errors.first_name && (
+              <p className="mt-1 text-sm text-red-600">{errors.first_name.message}</p>
+            )}
+          </div>
+
+          <div>
+            <label htmlFor="middle_name" className="block text-sm font-medium text-gray-700">
+              Middle Name
+            </label>
+            <input
+              type="text"
+              id="middle_name"
+              {...register('middle_name')}
+              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="Middle name (optional)"
+            />
+            {errors.middle_name && (
+              <p className="mt-1 text-sm text-red-600">{errors.middle_name.message}</p>
+            )}
+          </div>
         </div>
 
         <div>
