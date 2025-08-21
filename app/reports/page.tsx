@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { ClassReports } from '@/components/reports/ClassReports'
 import { StudentReports } from '@/components/reports/StudentReports'
 import PDFExportButtons from '@/components/reports/PDFExportButtons'
+import PageWrapper from '@/components/layout/PageWrapper'
+import { BarChart3, Users, BookOpen, ClipboardList } from 'lucide-react'
 
 export default async function ReportsPage() {
   const supabase = createClient()
@@ -66,28 +68,107 @@ export default async function ReportsPage() {
   }
 
   return (
-    <div className="px-4 py-6 sm:px-0">
-      <div className="border-4 border-dashed border-gray-200 rounded-lg p-6">
-        <div className="sm:flex sm:items-center">
-          <div className="sm:flex-auto">
-            <h1 className="text-3xl font-bold text-gray-900">Reports</h1>
-            <p className="mt-2 text-sm text-gray-700">
-              View class summaries and individual student performance reports.
-            </p>
-          </div>
+    <PageWrapper
+      title="Reports & Analytics"
+      subtitle={`${classes.length} classes • ${students.length} students • Comprehensive performance tracking`}
+      breadcrumbs={[
+        { label: 'Dashboard', href: '/dashboard' },
+        { label: 'Reports', href: '/reports', current: true }
+      ]}
+      actions={[
+        {
+          label: 'View Classes',
+          href: '/classes',
+          variant: 'secondary',
+          icon: <BookOpen className="h-4 w-4" />
+        },
+        {
+          label: 'View Students',
+          href: '/students',
+          variant: 'secondary',
+          icon: <Users className="h-4 w-4" />
+        },
+        {
+          label: 'Analytics',
+          href: '/analytics',
+          variant: 'primary',
+          icon: <BarChart3 className="h-4 w-4" />
+        }
+      ]}
+    >
+      <div className="space-y-8">
+        {/* Quick Navigation Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <a
+            href="/analytics"
+            className="group p-6 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg border border-blue-200 hover:border-blue-300 transition-all duration-200 hover:shadow-md"
+          >
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <BarChart3 className="h-8 w-8 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-blue-900">Advanced Analytics</p>
+                <p className="text-xs text-blue-700">Performance trends & insights</p>
+              </div>
+            </div>
+          </a>
+
+          <a
+            href="/classes"
+            className="group p-6 bg-gradient-to-br from-green-50 to-emerald-100 rounded-lg border border-green-200 hover:border-green-300 transition-all duration-200 hover:shadow-md"
+          >
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <BookOpen className="h-8 w-8 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-green-900">Class Management</p>
+                <p className="text-xs text-green-700">{classes.length} active classes</p>
+              </div>
+            </div>
+          </a>
+
+          <a
+            href="/students"
+            className="group p-6 bg-gradient-to-br from-purple-50 to-violet-100 rounded-lg border border-purple-200 hover:border-purple-300 transition-all duration-200 hover:shadow-md"
+          >
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <Users className="h-8 w-8 text-purple-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-purple-900">Student Records</p>
+                <p className="text-xs text-purple-700">{students.length} total students</p>
+              </div>
+            </div>
+          </a>
+
+          <a
+            href="/dashboard"
+            className="group p-6 bg-gradient-to-br from-orange-50 to-amber-100 rounded-lg border border-orange-200 hover:border-orange-300 transition-all duration-200 hover:shadow-md"
+          >
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <ClipboardList className="h-8 w-8 text-orange-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-orange-900">Dashboard</p>
+                <p className="text-xs text-orange-700">Overview & quick actions</p>
+              </div>
+            </div>
+          </a>
         </div>
+
+        {/* PDF Export Section */}
+        <PDFExportButtons />
         
-        <div className="mt-8 space-y-8">
-          {/* PDF Export Section */}
-          <PDFExportButtons />
-          
-          {/* Existing Reports */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <ClassReports classes={classes} />
-            <StudentReports students={students} />
-          </div>
+        {/* Main Reports */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <ClassReports classes={classes} />
+          <StudentReports students={students} />
         </div>
       </div>
-    </div>
+    </PageWrapper>
   )
 }
