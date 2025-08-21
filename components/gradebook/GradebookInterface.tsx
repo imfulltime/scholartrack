@@ -239,8 +239,10 @@ export function GradebookInterface({
         </ul>
       </div>
 
-      {/* Gradebook Table */}
-      <div className="overflow-x-auto">
+      {/* Mobile-Optimized Gradebook */}
+      <div className="space-y-4">
+        {/* Desktop Table - Hidden on small screens */}
+        <div className="hidden lg:block overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -265,7 +267,7 @@ export function GradebookInterface({
             {students.map((student, index) => (
               <tr key={student.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {student.full_name}
+                  {student.display_name || `${student.family_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {student.external_id || '-'}
@@ -317,6 +319,98 @@ export function GradebookInterface({
             ))}
           </tbody>
         </table>
+        </div>
+
+        {/* Mobile Cards - Shown on small screens */}
+        <div className="lg:hidden space-y-3">
+          <div className="text-sm text-gray-600 mb-4">
+            <span className="font-medium">{students.length}</span> students • Max score: <span className="font-medium">{maxScore}</span>
+          </div>
+          
+          {students.map((student, index) => (
+            <div key={student.id} className="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+              {/* Student Name Header */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex-1">
+                  <h3 className="text-lg font-medium text-gray-900 leading-tight">
+                    {student.display_name || `${student.family_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`}
+                  </h3>
+                  {student.external_id && (
+                    <p className="text-sm text-gray-500 mt-1">ID: {student.external_id}</p>
+                  )}
+                </div>
+                <div className="text-right ml-4">
+                  <div className={`text-xl font-bold ${getScoreColor(scores[student.id]?.score || '')}`}>
+                    {getScorePercentage(scores[student.id]?.score || '') || '-%'}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {scores[student.id]?.score ? `${scores[student.id]?.score}/${maxScore}` : `0/${maxScore}`}
+                  </div>
+                </div>
+              </div>
+
+              {/* Score Input - Prominent for mobile */}
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Score (out of {maxScore})
+                  </label>
+                  <input
+                    ref={(el) => {
+                      if (el) inputRefs.current[`${student.id}-score`] = el
+                    }}
+                    type="number"
+                    min="0"
+                    max={maxScore}
+                    step="0.1"
+                    value={scores[student.id]?.score || ''}
+                    onChange={(e) => updateScore(student.id, 'score', e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, student.id, 'score')}
+                    onBlur={() => handleBlur(student.id)}
+                    className={`w-full px-4 py-3 text-lg border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 ${
+                      scores[student.id]?.score && !validateScore(scores[student.id].score)
+                        ? 'border-red-300 bg-red-50'
+                        : 'border-gray-300'
+                    }`}
+                    placeholder="Enter score"
+                  />
+                  {scores[student.id]?.score && !validateScore(scores[student.id].score) && (
+                    <p className="mt-1 text-sm text-red-600">Invalid score (max: {maxScore})</p>
+                  )}
+                </div>
+
+                {/* Comment Input */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Comment (optional)
+                  </label>
+                  <input
+                    ref={(el) => {
+                      if (el) inputRefs.current[`${student.id}-comment`] = el
+                    }}
+                    type="text"
+                    value={scores[student.id]?.comment || ''}
+                    onChange={(e) => updateScore(student.id, 'comment', e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, student.id, 'comment')}
+                    onBlur={() => handleBlur(student.id)}
+                    className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Add a comment for this student..."
+                  />
+                </div>
+              </div>
+
+              {/* Visual feedback for saved state */}
+              {scores[student.id]?.score && (
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">Status</span>
+                    <span className="text-green-600 font-medium">✓ Auto-saved</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
       {students.length === 0 && (
