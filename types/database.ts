@@ -36,7 +36,8 @@ export interface Database {
           display_name: string;
           full_name: string | null; // Deprecated, for backward compatibility
           year_level: number;
-          external_id: string | null;
+          gender: 'Male' | 'Female';
+          universal_id: string;
           owner_id: string;
           created_at: string;
           updated_at: string;
@@ -48,7 +49,8 @@ export interface Database {
           middle_name?: string | null;
           full_name?: string | null; // Deprecated
           year_level: number;
-          external_id?: string | null;
+          gender: 'Male' | 'Female';
+          universal_id?: string;
           owner_id: string;
           created_at?: string;
           updated_at?: string;
@@ -60,7 +62,8 @@ export interface Database {
           middle_name?: string | null;
           full_name?: string | null; // Deprecated
           year_level?: number;
-          external_id?: string | null;
+          gender?: 'Male' | 'Female';
+          universal_id?: string;
           owner_id?: string;
           created_at?: string;
           updated_at?: string;

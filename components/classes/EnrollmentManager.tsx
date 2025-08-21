@@ -127,7 +127,7 @@ export function EnrollmentManager({
               {availableStudents.map((student) => (
                 <option key={student.id} value={student.id}>
                   {student.display_name || `${student.family_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`}
-                  {student.external_id && ` (${student.external_id})`}
+                  {` (${student.universal_id})`}
                   {` - Grade ${student.year_level}`}
                 </option>
               ))}
@@ -170,11 +170,9 @@ export function EnrollmentManager({
                 <div className="text-sm font-medium text-gray-900">
                   {enrollment.students?.display_name || `${enrollment.students?.family_name}, ${enrollment.students?.first_name}${enrollment.students?.middle_name ? ' ' + enrollment.students.middle_name : ''}`}
                 </div>
-                {enrollment.students?.external_id && (
-                  <div className="text-xs text-gray-500">
-                    ID: {enrollment.students.external_id}
-                  </div>
-                )}
+                <div className="text-xs text-gray-500 font-mono">
+                  {enrollment.students?.universal_id}
+                </div>
               </div>
               <button
                 onClick={() => handleRemoveStudent(

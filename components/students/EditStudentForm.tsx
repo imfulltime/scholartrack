@@ -11,8 +11,10 @@ const studentSchema = z.object({
   family_name: z.string().min(1, 'Family name is required'),
   first_name: z.string().min(1, 'First name is required'),
   middle_name: z.string().optional(),
-  external_id: z.string().optional(),
   year_level: z.number().min(1).max(12),
+  gender: z.enum(['Male', 'Female'], {
+    required_error: 'Gender is required',
+  }),
 })
 
 type StudentFormData = z.infer<typeof studentSchema>
@@ -25,8 +27,9 @@ interface EditStudentFormProps {
     middle_name: string | null
     display_name: string
     full_name: string | null // backward compatibility
-    external_id?: string | null
     year_level: number
+    gender: 'Male' | 'Female'
+    universal_id: string
   }
   onClose: () => void
   onSuccess: () => void
@@ -46,8 +49,8 @@ export function EditStudentForm({ student, onClose, onSuccess }: EditStudentForm
       family_name: student.family_name,
       first_name: student.first_name,
       middle_name: student.middle_name || '',
-      external_id: student.external_id || '',
       year_level: student.year_level,
+      gender: student.gender,
     },
   })
 
@@ -62,7 +65,6 @@ export function EditStudentForm({ student, onClose, onSuccess }: EditStudentForm
         },
         body: JSON.stringify({
           ...data,
-          external_id: data.external_id || null,
         }),
       })
 
@@ -135,38 +137,60 @@ export function EditStudentForm({ student, onClose, onSuccess }: EditStudentForm
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Student ID (Optional)
-              </label>
-              <input
-                {...register('external_id')}
-                type="text"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., STU123"
-              />
-              {errors.external_id && (
-                <p className="text-sm text-red-600 mt-1">{errors.external_id.message}</p>
-              )}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3 flex-1">
+                  <h3 className="text-sm font-medium text-blue-800">
+                    Universal Student ID
+                  </h3>
+                  <div className="mt-1 text-sm text-blue-700">
+                    <div className="font-mono text-lg font-bold text-blue-900">{student.universal_id}</div>
+                    <p className="text-xs">This ID is unique across the entire school system and cannot be changed.</p>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Year Level
-              </label>
-              <select
-                {...register('year_level', { valueAsNumber: true })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {Array.from({ length: 12 }, (_, i) => i + 1).map((year) => (
-                  <option key={year} value={year}>
-                    Year {year}
-                  </option>
-                ))}
-              </select>
-              {errors.year_level && (
-                <p className="text-sm text-red-600 mt-1">{errors.year_level.message}</p>
-              )}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Year Level *
+                </label>
+                <select
+                  {...register('year_level', { valueAsNumber: true })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map((year) => (
+                    <option key={year} value={year}>
+                      Grade {year}
+                    </option>
+                  ))}
+                </select>
+                {errors.year_level && (
+                  <p className="text-sm text-red-600 mt-1">{errors.year_level.message}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Gender *
+                </label>
+                <select
+                  {...register('gender')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="Male">👦 Male</option>
+                  <option value="Female">👧 Female</option>
+                </select>
+                {errors.gender && (
+                  <p className="text-sm text-red-600 mt-1">{errors.gender.message}</p>
+                )}
+              </div>
             </div>
 
             <div className="flex justify-end space-x-3 pt-4">

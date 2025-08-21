@@ -131,9 +131,8 @@ BEGIN
       'period_number', i
     );
 
-    -- Create default assessment types for this period
-    -- Quiz: 30%, Assignment: 40%, Exam: 30%
-    -- Use ON CONFLICT to handle existing assessment types gracefully
+    -- Create default assessment types for this period without default percentages
+    -- Teachers must manually set their preferred percentages
     INSERT INTO public.assessment_types (
       name, 
       description, 
@@ -142,16 +141,16 @@ BEGIN
       grading_period_id,
       owner_id
     ) VALUES 
-    ('Quizzes', 'Short assessments and recitations', 30.00, true, period_id, p_owner_id),
-    ('Assignments', 'Homework, projects, and activities', 40.00, true, period_id, p_owner_id),
-    ('Exams', 'Periodic and major examinations', 30.00, true, period_id, p_owner_id)
+    ('Quizzes', 'Short assessments and recitations', 0.00, true, period_id, p_owner_id),
+    ('Assignments', 'Homework, projects, and activities', 0.00, true, period_id, p_owner_id),
+    ('Exams', 'Periodic and major examinations', 0.00, true, period_id, p_owner_id)
     ON CONFLICT (owner_id, name) DO NOTHING;
 
     -- Add to result
     types_array := types_array || jsonb_build_array(
-      jsonb_build_object('name', 'Quizzes', 'weight', 30, 'grading_period', i),
-      jsonb_build_object('name', 'Assignments', 'weight', 40, 'grading_period', i),
-      jsonb_build_object('name', 'Exams', 'weight', 30, 'grading_period', i)
+      jsonb_build_object('name', 'Quizzes', 'weight', 0, 'grading_period', i),
+      jsonb_build_object('name', 'Assignments', 'weight', 0, 'grading_period', i),
+      jsonb_build_object('name', 'Exams', 'weight', 0, 'grading_period', i)
     );
   END LOOP;
 

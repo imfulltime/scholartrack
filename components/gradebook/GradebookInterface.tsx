@@ -12,7 +12,8 @@ interface Student {
   middle_name: string | null
   display_name: string
   full_name: string | null // backward compatibility
-  external_id: string | null
+  gender: 'Male' | 'Female'
+  universal_id: string
   raw_score: number | null
   comment: string
 }
@@ -251,8 +252,12 @@ export function GradebookInterface({
                 Student
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Student ID
+                Gender
               </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Universal ID
+              </th>
+
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Score (/{maxScore})
               </th>
@@ -268,10 +273,19 @@ export function GradebookInterface({
             {students.map((student, index) => (
               <tr key={student.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {student.display_name || `${student.family_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`}
+                  {student.gender === 'Male' ? '👦' : '👧'} {student.display_name || `${student.family_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {student.external_id || '-'}
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    student.gender === 'Male' 
+                      ? 'bg-blue-100 text-blue-800' 
+                      : 'bg-pink-100 text-pink-800'
+                  }`}>
+                    {student.gender}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
+                  {student.universal_id}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <input
@@ -334,11 +348,16 @@ export function GradebookInterface({
               <div className="flex items-center justify-between mb-3">
                 <div className="flex-1">
                   <h3 className="text-lg font-medium text-gray-900 leading-tight">
-                    {student.display_name || `${student.family_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`}
+                    {student.gender === 'Male' ? '👦' : '👧'} {student.display_name || `${student.family_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`}
                   </h3>
-                  {student.external_id && (
-                    <p className="text-sm text-gray-500 mt-1">ID: {student.external_id}</p>
-                  )}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 mt-1 text-sm text-gray-500">
+                    <span className="flex items-center">
+                      <span className="font-medium">{student.gender}</span>
+                    </span>
+                    <span className="flex items-center">
+                      Universal ID: <span className="font-medium ml-1">{student.universal_id}</span>
+                    </span>
+                  </div>
                 </div>
                 <div className="text-right ml-4">
                   <div className={`text-xl font-bold ${getScoreColor(scores[student.id]?.score || '')}`}>

@@ -2,6 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 import { DashboardStats } from '@/components/dashboard/DashboardStats'
 import { RecentActivity } from '@/components/dashboard/RecentActivity'
 import { UpcomingAssessments } from '@/components/dashboard/UpcomingAssessments'
+import { QuickActions } from '@/components/dashboard/QuickActions'
+import PageWrapper from '@/components/layout/PageWrapper'
+import { BarChart3, Settings, Users, BookOpen } from 'lucide-react'
 
 export default async function DashboardPage() {
   const supabase = createClient()
@@ -17,13 +20,15 @@ export default async function DashboardPage() {
   let students: any[] = []
   let assessments: any[] = []
   let recentScores: any[] = []
+  let announcements: any[] = []
 
   try {
     const [
       classesResult,
       studentsResult,
       assessmentsResult,
-      scoresResult
+      scoresResult,
+      announcementsResult
     ] = await Promise.all([
       supabase
         .from('classes')
@@ -44,13 +49,20 @@ export default async function DashboardPage() {
         .select('id, raw_score, updated_at, student_id, assessment_id')
         .eq('owner_id', user.id)
         .order('updated_at', { ascending: false })
-        .limit(10)
+        .limit(10),
+      supabase
+        .from('announcements')
+        .select('id, title, created_at')
+        .eq('owner_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(3)
     ])
 
     classes = classesResult.data || []
     students = studentsResult.data || []
     assessments = assessmentsResult.data || []
     recentScores = scoresResult.data || []
+    announcements = announcementsResult.data || []
 
   } catch (error) {
     console.error('Dashboard data fetch error:', error)
@@ -65,17 +77,46 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="px-4 py-6 sm:px-0">
-      <div className="border-4 border-dashed border-gray-200 rounded-lg p-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Dashboard</h1>
-        
+    <PageWrapper
+      title="ScholarTrack Dashboard"
+      subtitle={`Welcome back! Manage your ${stats.totalClasses} classes and ${stats.totalStudents} students efficiently`}
+      actions={[
+        {
+          label: 'Analytics',
+          href: '/analytics',
+          variant: 'secondary',
+          icon: <BarChart3 className="h-4 w-4" />
+        },
+        {
+          label: 'Reports',
+          href: '/reports',
+          variant: 'secondary'
+        },
+        {
+          label: 'Grading Settings',
+          href: '/settings/grading',
+          variant: 'secondary',
+          icon: <Settings className="h-4 w-4" />
+        }
+      ]}
+    >
+      <div className="space-y-8">
+        {/* Enhanced Stats with Links */}
         <DashboardStats stats={stats} />
+
+        {/* Quick Actions Grid */}
+        <QuickActions 
+          classes={classes}
+          students={students}
+          announcements={announcements}
+        />
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <UpcomingAssessments assessments={assessments || []} />
           <RecentActivity scores={recentScores || []} />
         </div>
       </div>
-    </div>
+    </PageWrapper>
   )
 }

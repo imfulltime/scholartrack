@@ -24,10 +24,13 @@ export function StudentsList({ students }: StudentsListProps) {
       const searchLower = searchTerm.toLowerCase()
       const displayName = student.display_name || `${student.family_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`
       return displayName.toLowerCase().includes(searchLower) ||
-        (student.external_id && student.external_id.toLowerCase().includes(searchLower))
+        student.universal_id.toLowerCase().includes(searchLower)
     })
     .sort((a, b) => {
-      // Sort by family name first, then by first name
+      // Sort by gender first (Female then Male), then by family name, then by first name
+      if (a.gender !== b.gender) {
+        return a.gender === 'Female' ? -1 : 1
+      }
       const familyCompare = (a.family_name || '').localeCompare(b.family_name || '')
       if (familyCompare !== 0) return familyCompare
       return (a.first_name || '').localeCompare(b.first_name || '')
@@ -105,12 +108,23 @@ export function StudentsList({ students }: StudentsListProps) {
                     </div>
                   </div>
                   <div className="ml-4">
-                    <div className="text-sm font-medium text-gray-900">
-                      {student.display_name || `${student.family_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`}
+                    <div className="text-sm font-medium text-gray-900 flex items-center">
+                      {student.gender === 'Male' ? '👦' : '👧'} {student.display_name || `${student.family_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`}
                     </div>
-                    <div className="text-sm text-gray-500">
-                      Grade {student.year_level}
-                      {student.external_id && ` • ID: ${student.external_id}`}
+                    <div className="text-sm text-gray-500 space-y-1">
+                      <div className="flex items-center space-x-3">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                          student.gender === 'Male' 
+                            ? 'bg-blue-100 text-blue-800' 
+                            : 'bg-pink-100 text-pink-800'
+                        }`}>
+                          {student.gender}
+                        </span>
+                        <span>Grade {student.year_level}</span>
+                      </div>
+                      <div className="flex items-center space-x-3 text-xs">
+                        <span className="font-mono text-indigo-600">#{student.universal_id}</span>
+                      </div>
                     </div>
                   </div>
                 </div>

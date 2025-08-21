@@ -8,7 +8,7 @@ const createStudentSchema = z.object({
   first_name: z.string().min(1),
   middle_name: z.string().optional(),
   year_level: z.number().min(1).max(12),
-  external_id: z.string().optional(),
+  gender: z.enum(['Male', 'Female']),
 })
 
 export async function POST(request: NextRequest) {
@@ -19,22 +19,7 @@ export async function POST(request: NextRequest) {
     const validatedData = createStudentSchema.parse(body)
     const supabase = createClient()
 
-    // Check if external_id already exists for this user (if provided)
-    if (validatedData.external_id) {
-      const { data: existingStudent } = await supabase
-        .from('students')
-        .select('id')
-        .eq('external_id', validatedData.external_id)
-        .eq('owner_id', user.id)
-        .single()
-
-      if (existingStudent) {
-        return NextResponse.json(
-          { error: 'A student with this ID already exists' },
-          { status: 400 }
-        )
-      }
-    }
+    // No need to check external_id since it's been removed
 
     // Compute names for backward-compat and to avoid relying solely on DB triggers
     const computedFullName = `${validatedData.first_name}${validatedData.middle_name ? ' ' + validatedData.middle_name : ''} ${validatedData.family_name}`
@@ -49,7 +34,7 @@ export async function POST(request: NextRequest) {
         // display_name column exists server-side
         display_name: computedDisplayName,
         year_level: validatedData.year_level,
-        external_id: validatedData.external_id ?? null,
+        gender: validatedData.gender,
       },
       user.id
     )
@@ -78,7 +63,8 @@ export async function POST(request: NextRequest) {
     await logAudit(user.id, 'CREATE', 'student', student.id, {
       name: student.display_name || `${student.family_name}, ${student.first_name}${student.middle_name ? ' ' + student.middle_name : ''}`,
       year_level: student.year_level,
-      external_id: student.external_id,
+      gender: student.gender,
+      universal_id: student.universal_id,
     })
 
     return NextResponse.json(student)

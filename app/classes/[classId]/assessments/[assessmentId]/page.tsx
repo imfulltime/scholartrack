@@ -38,11 +38,11 @@ export default async function GradebookPage({ params }: GradebookPageProps) {
     .from('enrollments')
     .select(`
       *,
-      students(id, family_name, first_name, middle_name, display_name, full_name, external_id)
+      students(id, family_name, first_name, middle_name, display_name, full_name, gender, universal_id)
     `)
     .eq('class_id', params.classId)
     .eq('owner_id', user.id)
-    .order('students(family_name), students(first_name)')
+    .order('students(gender), students(family_name), students(first_name)')
 
   // Get existing scores for this assessment
   const { data: existingScores } = await supabase
@@ -63,7 +63,8 @@ export default async function GradebookPage({ params }: GradebookPageProps) {
       middle_name: student?.middle_name || null,
       display_name: student?.display_name || `${student?.family_name || ''}, ${student?.first_name || ''}${student?.middle_name ? ' ' + student.middle_name : ''}`,
       full_name: student?.full_name || null,
-      external_id: student?.external_id || null,
+      gender: student?.gender || 'Male',
+      universal_id: student?.universal_id || '',
       raw_score: score?.raw_score || null,
       comment: score?.comment || ''
     }
