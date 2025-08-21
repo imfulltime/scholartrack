@@ -31,7 +31,7 @@ export default async function DashboardPage() {
         .eq('owner_id', user.id),
       supabase
         .from('students')
-        .select('id, full_name')
+        .select('id, family_name, first_name, middle_name, display_name, full_name')
         .eq('owner_id', user.id),
       supabase
         .from('assessments')

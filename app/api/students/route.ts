@@ -43,8 +43,15 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
+      console.error('Student creation error:', {
+        error: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+        validatedData
+      })
       return NextResponse.json(
-        { error: 'Failed to create student' },
+        { error: 'Failed to create student', details: error.message },
         { status: 500 }
       )
     }

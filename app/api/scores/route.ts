@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     // Verify the student belongs to the user
     const { data: student, error: studentError } = await supabase
       .from('students')
-      .select('id, full_name')
+      .select('id, family_name, first_name, middle_name, display_name')
       .eq('id', validatedData.student_id)
       .eq('owner_id', user.id)
       .single()
@@ -71,15 +71,22 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
+      console.error('Score save error:', {
+        error: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+        scoreData
+      })
       return NextResponse.json(
-        { error: 'Failed to save score' },
+        { error: 'Failed to save score', details: error.message },
         { status: 500 }
       )
     }
 
     // Log the action
     await logAudit(user.id, 'UPDATE', 'score', validatedData.assessment_id, {
-      student_name: student.full_name,
+      student_name: student.display_name || `${student.family_name}, ${student.first_name}`,
       assessment_title: assessment.title,
       score: validatedData.raw_score,
       comment: validatedData.comment,

@@ -143,7 +143,8 @@ export function GradebookInterface({
       }
 
       // Success feedback
-      const studentName = students.find(s => s.id === studentId)?.full_name
+      const student = students.find(s => s.id === studentId)
+      const studentName = student?.display_name || `${student?.family_name}, ${student?.first_name}` || 'Student'
       toast.success(`Saved score for ${studentName}`, { duration: 2000 })
       
     } catch (error) {
